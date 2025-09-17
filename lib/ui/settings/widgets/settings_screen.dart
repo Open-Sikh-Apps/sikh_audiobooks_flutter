@@ -1,0 +1,86 @@
+import 'package:flutter/material.dart';
+import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
+import 'package:sikh_audiobooks_flutter/ui/settings/viewmodels/settings_view_model.dart';
+import 'package:sikh_audiobooks_flutter/ui/settings/widgets/settings_tile.dart';
+import 'package:sikh_audiobooks_flutter/utils/locale.dart';
+import 'package:watch_it/watch_it.dart';
+
+class SettingsScreen extends WatchingWidget {
+  const SettingsScreen({super.key, required this.viewModel});
+  final SettingsViewmodel viewModel;
+
+  @override
+  Widget build(BuildContext context) {
+    final userLocale = watch(viewModel.userLocaleVN).value;
+    final userThemeMode = watch(viewModel.userThemeModeVN).value;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(
+          AppLocalizations.of(context)?.settings ?? "",
+          style: TextTheme.of(context).titleLarge,
+        ),
+      ),
+      body: SafeArea(
+        child: ListView(
+          children: [
+            ...ListTile.divideTiles(
+              context: context,
+              tiles: [
+                SettingsTile(
+                  icon: Icon(Icons.language),
+                  title: AppLocalizations.of(context)?.labelLanguage ?? "",
+                  selectionSheetTitle:
+                      AppLocalizations.of(context)?.labelLanguage ?? "",
+                  selectedValue: userLocale,
+                  options: <SettingsTileOption<Locale?>>[
+                    SettingsTileOption(
+                      value: null,
+                      title: AppLocalizations.of(context)?.labelSystem ?? "",
+                    ),
+                    ...AppLocalizations.supportedLocales.map(
+                      (locale) => SettingsTileOption(
+                        value: locale,
+                        title: locale.fullName(),
+                      ),
+                    ),
+                  ],
+                  onSubmitted: (locale) {
+                    viewModel.saveUserLocale(locale);
+                  },
+                ),
+                SettingsTile(
+                  icon: Icon(Icons.contrast),
+                  title: AppLocalizations.of(context)?.labelTheme ?? "",
+                  selectionSheetTitle:
+                      AppLocalizations.of(context)?.labelTheme ?? "",
+                  selectedValue: userThemeMode,
+                  options: <SettingsTileOption<ThemeMode?>>[
+                    SettingsTileOption(
+                      icon: Icon(Icons.contrast),
+                      value: null,
+                      title: AppLocalizations.of(context)?.labelSystem ?? "",
+                    ),
+                    SettingsTileOption(
+                      icon: Icon(Icons.light_mode),
+                      value: ThemeMode.light,
+                      title: AppLocalizations.of(context)?.labelLight ?? "",
+                    ),
+                    SettingsTileOption(
+                      icon: Icon(Icons.dark_mode),
+                      value: ThemeMode.dark,
+                      title: AppLocalizations.of(context)?.labelDark ?? "",
+                    ),
+                  ],
+                  onSubmitted: (themeMode) {
+                    viewModel.saveUserThemeMode(themeMode);
+                  },
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

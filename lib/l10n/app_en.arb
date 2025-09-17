@@ -1,0 +1,47 @@
+{
+  "@@locale": "en",
+  "appTitle": "Sikh Audiobooks",
+  "@appTitle": {
+    "description": "App title"
+  },
+  "errorLoading": "Error loading",
+  "@errorLoading": {
+    "description": "Error Loading data"
+  },
+  "settings": "Settings",
+  "@settings": {
+    "description": "Settings Title"
+  },
+  "labelNotSelected": "Not Selected",
+  "@labelNotSelected": {
+    "description": "Label for no option selected"
+  },
+  "labelLanguage": "Language",
+  "@labelLanguage": {
+    "description": "Label for Language"
+  },
+  "labelTheme": "Theme",
+  "@labelTheme": {
+    "description": "Label for Theme"
+  },
+  "labelSystem": "System",
+  "@labelSystem": {
+    "description": "Label for System"
+  },
+  "labelLight": "Light",
+  "@labelLight": {
+    "description": "Label for Light Theme"
+  },
+  "labelDark": "Dark",
+  "@labelDark": {
+    "description": "Label for Dark Theme"
+  },
+  "labelDiscover": "Discover",
+  "@labelDiscover": {
+    "description": "Label for Discover"
+  },
+  "labelMyLibrary": "My Library",
+  "@labelMyLibrary": {
+    "description": "Label for My Library"
+  }
+}

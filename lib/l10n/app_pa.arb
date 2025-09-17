@@ -1,0 +1,14 @@
+{
+  "@@locale": "pa",
+  "appTitle": "ਸਿੱਖ ਆਡੀਓ ਕਿਤਾਬਾਂ",
+  "errorLoading": "ਲੋਡ ਕਰਨ ਵਿੱਚ ਤਰੁੱਟੀ",
+  "settings": "ਸੈਟਿੰਗਾਂ",
+  "labelNotSelected": "ਚੁਣਿਆ ਨਹੀਂ ਗਿਆ",
+  "labelLanguage": "ਭਾਸ਼ਾ",
+  "labelTheme": "ਥੀਮ",
+  "labelSystem": "ਸਿਸਟਮ",
+  "labelLight": "ਲਾਈਟ",
+  "labelDark": "ਡਾਰਕ",
+  "labelDiscover": "ਖੋਜੋ",
+  "labelMyLibrary": "ਮੇਰੀ ਲਾਇਬ੍ਰੇਰੀ"
+}

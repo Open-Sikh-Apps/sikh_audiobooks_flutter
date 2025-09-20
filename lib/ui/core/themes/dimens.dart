@@ -19,13 +19,23 @@ abstract final class Dimens {
   ///Bottom sheet title padding
   static const bottomSheetTitlePadding = 8.0;
 
+  ///Error Indicator Icon Title padding
+  static const errorIndicationIconTitlePadding = 8.0;
+
+  /// Author grid photo size
+  static const authorPhotoSize = 140.0;
+
+  /// Author item inside spacing
+  static const authorItemInsideSpacing = 4.0;
+
+  /// Spacing between author items
+  static const betweenAuthorItemsSpacing = 24.0;
+
   /// Horizontal padding for screen edges
   double get paddingScreenHorizontal;
 
   /// Vertical padding for screen edges
   double get paddingScreenVertical;
-
-  double get profilePictureSize;
 
   double get titleIconSize;
 
@@ -59,9 +69,6 @@ final class _DimensMobile extends Dimens {
   final double paddingScreenVertical = Dimens.paddingVertical;
 
   @override
-  final double profilePictureSize = 64.0;
-
-  @override
   final double titleIconSize = 64.0;
 
   const _DimensMobile();
@@ -74,9 +81,6 @@ final class _DimensDesktop extends Dimens {
 
   @override
   final double paddingScreenVertical = 64.0;
-
-  @override
-  final double profilePictureSize = 128.0;
 
   @override
   final double titleIconSize = 128.0;

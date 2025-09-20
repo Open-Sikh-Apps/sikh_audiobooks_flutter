@@ -1,1 +1,21 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"sikh-audiobooks","appId":"1:90143180564:android:2fb1f17e78018615e76401","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"sikh-audiobooks","configurations":{"android":"1:90143180564:android:2fb1f17e78018615e76401"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "sikh-audiobooks",
+          "appId": "1:90143180564:android:2fb1f17e78018615e76401",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "sikh-audiobooks",
+          "configurations": {
+            "android": "1:90143180564:android:2fb1f17e78018615e76401"
+          }
+        }
+      }
+    }
+  }
+}

@@ -40,4 +40,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelMyLibrary => 'My Library';
+
+  @override
+  String get labelRefresh => 'Refresh';
+
+  @override
+  String get labelAuthors => 'Authors';
 }

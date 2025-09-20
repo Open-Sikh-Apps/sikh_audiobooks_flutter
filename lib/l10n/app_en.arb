@@ -43,5 +43,13 @@
   "labelMyLibrary": "My Library",
   "@labelMyLibrary": {
     "description": "Label for My Library"
+  },
+  "labelRefresh": "Refresh",
+  "@labelRefresh": {
+    "description": "Label for Refresh"
+  },
+  "labelAuthors": "Authors",
+  "@labelAuthors": {
+    "description": "Label for Authors"
   }
 }

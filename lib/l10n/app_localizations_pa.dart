@@ -40,4 +40,10 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get labelMyLibrary => 'ਮੇਰੀ ਲਾਇਬ੍ਰੇਰੀ';
+
+  @override
+  String get labelRefresh => 'ਰਿਫ੍ਰੈਸ਼ ਕਰੋ';
+
+  @override
+  String get labelAuthors => 'ਲੇਖਕ';
 }

@@ -1,5 +1,4 @@
 import 'package:command_it/command_it.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sikh_audiobooks_flutter/config/dependencies.dart';
@@ -7,16 +6,15 @@ import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/main_view_model.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/themes/dimens.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
+import 'package:sikh_audiobooks_flutter/utils/utils.dart';
 import 'package:watch_it/watch_it.dart';
-
-import 'firebase_options.dart';
 
 final getIt = GetIt.instance;
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  setupDependencies();
+  await lockOrientationPortrait();
+  await setupDependencies();
   runApp(
     MainApp(mainViewModel: MainViewModel(userSettingsRepository: getIt())),
   );

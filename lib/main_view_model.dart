@@ -18,14 +18,14 @@ class MainViewModel {
         final userLocaleResult = await _userSettingsRepository
             .fetchUserLocale();
         if (userLocaleResult is Error) {
-          return Result.error((userLocaleResult as Error).error);
+          return userLocaleResult;
         }
 
         final userThemeModeResult = await _userSettingsRepository
             .fetchUserThemeMode();
 
         if (userThemeModeResult is Error) {
-          return Result.error((userThemeModeResult as Error).error);
+          return userThemeModeResult;
         }
 
         return Result.ok(null);

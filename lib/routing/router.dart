@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:sikh_audiobooks_flutter/main.dart';
 import 'package:sikh_audiobooks_flutter/routing/routes.dart';
 import 'package:sikh_audiobooks_flutter/ui/audiobook/widgets/audiobook_screen.dart';
 import 'package:sikh_audiobooks_flutter/ui/author/widgets/author_screen.dart';
@@ -25,7 +26,7 @@ GoRouter router({
         GoRoute(
           path: Routes.discover,
           builder: (context, state) {
-            final viewModel = DiscoverViewModel();
+            final viewModel = DiscoverViewModel(audiobooksRepository: getIt());
             return DiscoverScreen(viewModel: viewModel);
           },
         ),

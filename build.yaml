@@ -1,0 +1,8 @@
+# https://github.com/rrousselGit/freezed/issues/86
+# to resolve issues with nested freezed classes
+targets:
+  $default:
+    builders:
+      json_serializable:
+        options:
+          explicit_to_json: true

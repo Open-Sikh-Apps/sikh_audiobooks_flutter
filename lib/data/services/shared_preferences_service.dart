@@ -16,7 +16,7 @@ class SharedPreferencesService {
       final localeString = sharedPreferences.getString(_localeKey);
       _log.t('Got localeString:$localeString from SharedPreferences');
       return Result.ok(localeString == null ? null : Locale(localeString));
-    } on Exception catch (e) {
+    } catch (e) {
       _log.w('Failed to get localeString', error: e);
       return Result.error(e);
     }
@@ -33,7 +33,7 @@ class SharedPreferencesService {
         _log.t('Replaced localeString with ${locale.languageCode}');
       }
       return const Result.ok(null);
-    } on Exception catch (e) {
+    } catch (e) {
       _log.w('Failed to set localeString', error: e);
       return Result.error(e);
     }
@@ -47,7 +47,7 @@ class SharedPreferencesService {
       return Result.ok(
         themeModeInt == null ? null : ThemeMode.values[themeModeInt],
       );
-    } on Exception catch (e) {
+    } catch (e) {
       _log.w('Failed to get themeModeInt', error: e);
       return Result.error(e);
     }
@@ -64,25 +64,25 @@ class SharedPreferencesService {
         _log.t('Replaced themeModeInt with ${themeMode.index}');
       }
       return const Result.ok(null);
-    } on Exception catch (e) {
+    } catch (e) {
       _log.w('Failed to set themeModeInt', error: e);
       return Result.error(e);
     }
   }
 
-  Future<Result<int?>> fetchDataVersion() async {
+  Future<Result<int?>> fetchLocalDataVersion() async {
     try {
       final sharedPreferences = await SharedPreferences.getInstance();
       final dataVersion = sharedPreferences.getInt(_dataVersionKey);
       _log.t('Got dataVersion:$dataVersion from SharedPreferences');
       return Result.ok(dataVersion);
-    } on Exception catch (e) {
+    } catch (e) {
       _log.w('Failed to get dataVersion', error: e);
       return Result.error(e);
     }
   }
 
-  Future<Result<void>> saveDataVersion(int? dataVersion) async {
+  Future<Result<void>> saveLocalDataVersion(int? dataVersion) async {
     try {
       final sharedPreferences = await SharedPreferences.getInstance();
       if (dataVersion == null) {
@@ -93,7 +93,7 @@ class SharedPreferencesService {
         _log.t('Replaced dataVersion with $dataVersion');
       }
       return const Result.ok(null);
-    } on Exception catch (e) {
+    } catch (e) {
       _log.w('Failed to set dataVersion', error: e);
       return Result.error(e);
     }

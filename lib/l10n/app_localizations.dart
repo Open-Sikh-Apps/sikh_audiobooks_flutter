@@ -163,6 +163,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'My Library'**
   String get labelMyLibrary;
+
+  /// Label for Refresh
+  ///
+  /// In en, this message translates to:
+  /// **'Refresh'**
+  String get labelRefresh;
+
+  /// Label for Authors
+  ///
+  /// In en, this message translates to:
+  /// **'Authors'**
+  String get labelAuthors;
 }
 
 class _AppLocalizationsDelegate

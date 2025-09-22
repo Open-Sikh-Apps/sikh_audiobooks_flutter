@@ -3,7 +3,6 @@ import 'dart:io';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
-import 'package:flutter/material.dart';
 import 'package:path/path.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:sembast/sembast_io.dart';
@@ -64,25 +63,26 @@ Future<void> setupDependencies() async {
         )
         as AudiobooksRepository,
   );
-  getIt.registerSingleton(
-    GlobalKey<NavigatorState>(),
-    instanceName: Constants.rootNavigatorinstanceName,
-  );
-  getIt.registerSingleton(
-    GlobalKey<NavigatorState>(),
-    instanceName: Constants.shellNavigatorinstanceName,
-  );
+  // getIt.registerSingleton(
+  //   GlobalKey<NavigatorState>(),
+  //   instanceName: Constants.rootNavigatorinstanceName,
+  // );
+  // getIt.registerSingleton(
+  //   GlobalKey<NavigatorState>(),
+  //   instanceName: Constants.shellNavigatorinstanceName,
+  // );
 
-  getIt.registerSingleton(
-    router(
-      rootNavigatorKey: getIt(
-        instanceName: Constants.rootNavigatorinstanceName,
-      ),
-      shellNavigatorKey: getIt(
-        instanceName: Constants.shellNavigatorinstanceName,
-      ),
-    ),
-  );
+  // getIt.registerSingleton(
+  //   router(
+  //     rootNavigatorKey: getIt(
+  //       instanceName: Constants.rootNavigatorinstanceName,
+  //     ),
+  //     shellNavigatorKey: getIt(
+  //       instanceName: Constants.shellNavigatorinstanceName,
+  //     ),
+  //   ),
+  // );
+  getIt.registerSingleton(AppRouter());
 }
 
 Future<void> initFirebase() async {

@@ -10,4 +10,8 @@ abstract final class Routes {
   static const audiobook = "/$audiobookRelative";
   static const audiobookRelative = "audiobook";
   static String audiobookWithId(String id) => '$audiobook/$id';
+  static const settingsRelative = "settings";
+  static const settings = "/$settingsRelative";
+  static const playerRelative = "player";
+  static const player = "/$playerRelative";
 }

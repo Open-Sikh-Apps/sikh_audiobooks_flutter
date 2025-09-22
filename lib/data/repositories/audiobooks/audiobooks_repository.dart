@@ -57,12 +57,6 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
       return Result.error(parseAndUpdateResult.error);
     }
 
-    //check if all author images downloaded and download if needed
-    // final fetchImagesResult = await _fetchAuthorImagesIfNeeded();
-    // if (fetchImagesResult is Error) {
-    //   return Result.error(fetchImagesResult.error);
-    // }
-
     return Result.ok(null);
   }
 
@@ -126,66 +120,6 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
       await cancelable?.cancel();
     }
   }
-
-  // Future<Result<void>> _fetchAuthorImagesIfNeeded() async {
-  //   final authorsResult = await _localDbService.getAllAuthors();
-  //   final List<Author> authors;
-  //   switch (authorsResult) {
-  //     case Ok<List<Author>>():
-  //       authors = authorsResult.value;
-  //     case Error<List<Author>>():
-  //       _log.d("authorsResult is Error");
-  //       return Result.error(authorsResult.error);
-  //   }
-
-  //   final authorsWithoutImage = authors.where(
-  //     (author) => (author.localImagePath == null),
-  //   );
-
-  //   final authorSlices = authorsWithoutImage.slices(5);
-
-  //   for (final authorSlice in authorSlices) {
-  //     final List<Future<Result<void>>> downloadFutures = [];
-  //     for (final author in authorSlice) {
-  //       // download image for this author
-  //       final downloadFuture = _downloadAndSaveImageForAuthor(author);
-  //       downloadFutures.add(downloadFuture);
-  //     }
-  //     final results = await Future.wait(downloadFutures);
-  //     if (results.any((result) => (result is Error))) {
-  //       final errorResult = results.firstWhere((result) => (result is Error));
-  //       return Result.error((errorResult as Error).error);
-  //     }
-  //   }
-
-  //   return Result.ok(null);
-  // }
-
-  // Future<Result<void>> _downloadAndSaveImageForAuthor(Author author) async {
-  //   try {
-  //     final downloadResult = await _remoteStorageService.downloadFile(
-  //       storageFilePath: author.imagePath,
-  //       uuidFileNameLocalWithoutExtension: author.id,
-  //     );
-  //     final Result<void> saveAuthorResult;
-  //     switch (downloadResult) {
-  //       case Ok<String>():
-  //         saveAuthorResult = await _localDbService.saveAuthor(
-  //           author.copyWith(localImagePath: downloadResult.value),
-  //         );
-  //       case Error<String>():
-  //         return Result.error(downloadResult.error);
-  //     }
-
-  //     if (saveAuthorResult is Error) {
-  //       return Result.error(saveAuthorResult.error);
-  //     }
-
-  //     return Result.ok(null);
-  //   } catch (e) {
-  //     return Result.error(e);
-  //   }
-  // }
 
   Future<Result<void>> _parseAndUpdateJsonData() async {
     final dataVersionResult = await _sharedPreferencesService

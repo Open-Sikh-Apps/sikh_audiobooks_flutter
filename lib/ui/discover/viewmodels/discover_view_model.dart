@@ -14,6 +14,7 @@ class DiscoverViewModel {
 
   late final Command<void, Result<void>?> refreshDiscoverDataCommand =
       Command.createAsyncNoParam(() async {
+        _log.d("refreshDiscoverDataCommand executing");
         final result = await _audiobooksRepository.refreshDiscoverData();
 
         if (result is Error) {

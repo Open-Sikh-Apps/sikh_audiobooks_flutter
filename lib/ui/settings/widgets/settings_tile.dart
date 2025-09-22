@@ -66,24 +66,21 @@ class SettingsTile<T> extends StatelessWidget {
                     ),
                     child: Text(
                       selectionSheetTitle,
-                      style: TextTheme.of(context).bodyLarge,
+                      style: TextTheme.of(context).titleMedium,
                     ),
                   ),
-                  Divider(thickness: Dimens.headerDividerThickness),
-                  ...ListTile.divideTiles(
-                    context: context,
-                    tiles: options.map(
-                      (option) => ListTile(
-                        leading: option.icon,
-                        title: Text(
-                          option.title,
-                          style: TextTheme.of(context).bodyMedium,
-                        ),
-                        onTap: () {
-                          onSubmitted(option.value);
-                          Navigator.pop(context);
-                        },
+                  Divider(),
+                  ...options.map(
+                    (option) => ListTile(
+                      leading: option.icon,
+                      title: Text(
+                        option.title,
+                        style: TextTheme.of(context).bodyMedium,
                       ),
+                      onTap: () {
+                        onSubmitted(option.value);
+                        Navigator.pop(context);
+                      },
                     ),
                   ),
                 ],

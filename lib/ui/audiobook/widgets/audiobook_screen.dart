@@ -1,8 +1,6 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:sikh_audiobooks_flutter/ui/audiobook/viewmodels/audiobook_view_model.dart';
 
-@RoutePage()
 class AudiobookScreen extends StatelessWidget {
   const AudiobookScreen({super.key, required this.viewModel});
   final AudiobookViewModel viewModel;

@@ -1,11 +1,12 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:sikh_audiobooks_flutter/data/services/shared_preferences_service.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
 
-abstract class UserSettingsRepository {
+abstract class UserSettingsRepository extends Disposable {
   ValueNotifier<Locale?> get userLocaleVN;
   Future<Result<Locale?>> fetchUserLocale();
   Future<Result<void>> saveUserLocale({required Locale? locale});
@@ -94,5 +95,11 @@ class UserSettingsRepositoryProd extends UserSettingsRepository {
         );
         return Result.error(result.error);
     }
+  }
+
+  @override
+  FutureOr onDispose() {
+    _userLocaleVN.dispose();
+    _userThemeModeVN.dispose();
   }
 }

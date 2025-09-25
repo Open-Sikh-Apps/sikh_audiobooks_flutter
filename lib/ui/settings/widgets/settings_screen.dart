@@ -1,4 +1,3 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/ui/settings/viewmodels/settings_view_model.dart';
@@ -6,7 +5,6 @@ import 'package:sikh_audiobooks_flutter/ui/settings/widgets/settings_tile.dart';
 import 'package:sikh_audiobooks_flutter/utils/locale.dart';
 import 'package:watch_it/watch_it.dart';
 
-@RoutePage()
 class SettingsScreen extends WatchingWidget {
   const SettingsScreen({super.key, required this.viewModel});
   final SettingsViewmodel viewModel;

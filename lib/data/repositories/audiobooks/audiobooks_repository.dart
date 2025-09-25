@@ -3,6 +3,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart' hide Result;
+import 'package:collection/collection.dart';
+import 'package:command_it/command_it.dart';
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart';
@@ -23,10 +25,12 @@ abstract class AudiobooksRepository extends Disposable {
   /// - updates local text data, if obsolete
   /// - downloads any author images, if missing or obsolete
   // Future<List<Author>> fetchAuthorList();
-  Future<Result<void>> refreshDiscoverData();
+  Command<void, Result<void>?> get refreshDataCommand;
   Stream<List<Author>> getAllAuthorsStream();
   Future<void> startDownloadAuthorImage(String authorId);
   Future<void> cancelDownloadAuthorImage(String authorId);
+  Stream<Author?> getAuthorByIdStream(String id);
+  Stream<List<Audiobook>> getAudiobooksByAuthorId(String authorId);
 }
 
 class AudiobooksRepositoryProd extends AudiobooksRepository {
@@ -50,15 +54,21 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   final Map<String, CancelableOperation> _downloadTasksMap = {};
   final Directory _appDocsDir;
 
-  @override
-  Future<Result<void>> refreshDiscoverData() async {
-    final parseAndUpdateResult = await _parseAndUpdateJsonData();
-    if (parseAndUpdateResult is Error) {
-      return Result.error(parseAndUpdateResult.error);
-    }
+  late final Command<void, Result<void>?> _refreshDataCommand =
+      Command.createAsyncNoParam(() async {
+        _log.d("_refreshDataCommand executing");
+        final result = await _parseAndUpdateJsonData();
 
-    return Result.ok(null);
-  }
+        if (result is Error) {
+          _log.d("result is Error", error: result.error);
+          return result;
+        }
+
+        return Result.ok(null);
+      }, initialValue: null)..execute();
+
+  @override
+  Command<void, Result<void>?> get refreshDataCommand => _refreshDataCommand;
 
   @override
   Future<void> startDownloadAuthorImage(String authorId) async {
@@ -88,11 +98,14 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
         return;
       }
 
-      _log.d("startDownloadAuthorImage new task authorId:$authorId");
-
       final fileExtension = authorFromDb.imagePath.split(".").last;
-      final localFileName = "${authorFromDb.id}$fileExtension";
+      final localFileName = "${authorFromDb.id}.$fileExtension";
       final localFilePath = join(_appDocsDir.path, localFileName);
+
+      _log.d(
+        "startDownloadAuthorImage new task authorId:$authorId\nlocalFilePath:$localFilePath",
+      );
+
       final cancelable = _remoteStorageService.downloadFileCancelable(
         storageFilePath: authorFromDb.imagePath,
         localFilePath: localFilePath,
@@ -175,10 +188,24 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
         //parse json from "data"
 
         // first let's parse authors
+        // download list of all authors from db
         // for every author check if an author already exists using it's id
         // if yes, check if it's imagePath has changed
         // if it has changed, delete the file at the old localImagePath if it exists
+        // delete any extra authors from db, which are no longer present in server data
+
         final authorsJson = jsonData[Constants.authorsDbKey] as List<dynamic>;
+        final allAuthorsFromDbResult = await _localDbService.getAllAuthors();
+        final List<Author> allAuthorsFromDb;
+
+        switch (allAuthorsFromDbResult) {
+          case Ok<List<Author>>():
+            allAuthorsFromDb = allAuthorsFromDbResult.value;
+          case Error<List<Author>>():
+            _log.d("allAuthorsFromDbResult is Error:\t$allAuthorsFromDbResult");
+            return Result.error(allAuthorsFromDbResult.error);
+        }
+
         for (final authorJson in authorsJson) {
           final authorJsonAsMap = authorJson as Map<String, Object?>;
           final Author author;
@@ -191,42 +218,35 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
             return Result.error(e);
           }
 
-          final Result<Author?> authorFromDbResult = await _localDbService
-              .getAuthorById(author.id);
+          final Author? authorFromDb = allAuthorsFromDb.firstWhereOrNull(
+            (a) => (a.id == author.id),
+          );
 
-          final Author? authorFromDb;
-
-          switch (authorFromDbResult) {
-            case Ok<Author?>():
-              authorFromDb = authorFromDbResult.value;
-            case Error<Author?>():
-              _log.d("authorFromDbResult is Error:\t$authorFromDbResult");
-              return Result.error(authorFromDbResult.error);
-          }
-
-          if (authorFromDb != null &&
-              author.imagePath != authorFromDb.imagePath &&
-              authorFromDb.localImagePath != null) {
-            //delete file at authorFromDb.localImagePath
-
-            try {
-              final fileToDelete = File(authorFromDb.localImagePath ?? "");
-              if (await fileToDelete.exists()) {
-                await fileToDelete.delete();
-              }
-            } catch (e) {
-              _log.d("error deleting file at: ${authorFromDb.localImagePath}");
-              return Result.error(e);
-            }
-          }
+          final localImagePath = authorFromDb?.localImagePath;
 
           final Result<void> authorSaveResult = await _localDbService
-              .saveAuthor(author);
+              .saveAuthor(
+                author.copyWith(
+                  localImagePath:
+                      (authorFromDb != null &&
+                          author.imagePath == authorFromDb.imagePath)
+                      ? localImagePath
+                      : null,
+                ),
+              );
 
           if (authorSaveResult is Error) {
             _log.d("authorSaveResult is Error", error: authorSaveResult.error);
             return authorSaveResult;
           }
+          if (authorFromDb != null) {
+            allAuthorsFromDb.removeWhere((a) => (a.id == author.id));
+          }
+        }
+
+        for (final authorToDelete in allAuthorsFromDb) {
+          _log.i("deleting author with id ${authorToDelete.id}");
+          _localDbService.deleteAuthorById(authorToDelete.id);
         }
 
         //then let's parse audiobooks
@@ -235,6 +255,20 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
         // if it has changed, delete the file at the old localImagePath if it exists
         final audiobooksJson =
             jsonData[Constants.audioBooksDbKey] as List<dynamic>;
+        final allAudiobooksFromDbResult = await _localDbService
+            .getAllAudiobooks();
+        final List<Audiobook> allAudiobooksFromDb;
+
+        switch (allAudiobooksFromDbResult) {
+          case Ok<List<Audiobook>>():
+            allAudiobooksFromDb = allAudiobooksFromDbResult.value;
+          case Error<List<Audiobook>>():
+            _log.d(
+              "allAudiobooksFromDbResult is Error:\t$allAudiobooksFromDbResult",
+            );
+            return Result.error(allAudiobooksFromDbResult.error);
+        }
+
         for (final audiobookJson in audiobooksJson) {
           final audiobookJsonMap = audiobookJson as Map<String, Object?>;
 
@@ -248,39 +282,21 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
             return Result.error(e);
           }
 
-          final Result<Audiobook?> audiobookFromDbResult = await _localDbService
-              .getAudiobookById(audiobook.id);
+          final Audiobook? audiobookFromDb = allAudiobooksFromDb
+              .firstWhereOrNull((a) => (a.id == audiobook.id));
 
-          final Audiobook? audiobookFromDb;
-
-          switch (audiobookFromDbResult) {
-            case Ok<Audiobook?>():
-              audiobookFromDb = audiobookFromDbResult.value;
-            case Error<Audiobook?>():
-              _log.d("audiobookFromDbResult is Error:\t$audiobookFromDbResult");
-              return Result.error(audiobookFromDbResult.error);
-          }
-
-          if (audiobookFromDb != null &&
-              audiobook.imagePath != audiobookFromDb.imagePath &&
-              audiobookFromDb.localImagePath != null) {
-            //delete file at authorFromDb.localImagePath
-
-            try {
-              final fileToDelete = File(audiobookFromDb.localImagePath ?? "");
-              if (await fileToDelete.exists()) {
-                await fileToDelete.delete();
-              }
-            } catch (e) {
-              _log.d(
-                "error deleting file at: ${audiobookFromDb.localImagePath}",
-              );
-              return Result.error(e);
-            }
-          }
+          final localImagePath = audiobookFromDb?.localImagePath;
 
           final Result<void> audiobookSaveResult = await _localDbService
-              .saveAudiobook(audiobook);
+              .saveAudiobook(
+                audiobook.copyWith(
+                  localImagePath:
+                      (audiobookFromDb != null &&
+                          audiobook.imagePath == audiobookFromDb.imagePath)
+                      ? localImagePath
+                      : null,
+                ),
+              );
 
           if (audiobookSaveResult is Error) {
             _log.d(
@@ -289,6 +305,14 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
             );
             return audiobookSaveResult;
           }
+          if (audiobookFromDb != null) {
+            allAudiobooksFromDb.removeWhere((a) => (a.id == audiobook.id));
+          }
+        }
+
+        for (final audiobookToDelete in allAudiobooksFromDb) {
+          _log.i("deleting audiobook with id ${audiobookToDelete.id}");
+          _localDbService.deleteAudiobookById(audiobookToDelete.id);
         }
 
         //then let's parse chapters
@@ -296,6 +320,19 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
         // if yes, check if it's audioPath has changed
         // if it has changed, delete the file at the old localAudioPath if it exists
         final chaptersJson = jsonData[Constants.chaptersDbKey] as List<dynamic>;
+
+        final allChaptersFromDbResult = await _localDbService.getAllChapters();
+        final List<Chapter> allChaptersFromDb;
+
+        switch (allChaptersFromDbResult) {
+          case Ok<List<Chapter>>():
+            allChaptersFromDb = allChaptersFromDbResult.value;
+          case Error<List<Chapter>>():
+            _log.d(
+              "allChaptersFromDbResult is Error:\t$allChaptersFromDbResult",
+            );
+            return Result.error(allChaptersFromDbResult.error);
+        }
 
         for (final chapterJson in chaptersJson) {
           final chapterJsonMap = chapterJson as Map<String, Object?>;
@@ -310,37 +347,22 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
             return Result.error(e);
           }
 
-          final Result<Chapter?> chapterFromDbResult = await _localDbService
-              .getChapterById(chapter.id);
+          final Chapter? chapterFromDb = allChaptersFromDb.firstWhereOrNull(
+            (c) => (c.id == chapter.id),
+          );
 
-          final Chapter? chapterFromDb;
-
-          switch (chapterFromDbResult) {
-            case Ok<Chapter?>():
-              chapterFromDb = chapterFromDbResult.value;
-            case Error<Chapter?>():
-              _log.d("chapterFromDbResult is Error:\t$chapterFromDbResult");
-              return Result.error(chapterFromDbResult.error);
-          }
-
-          if (chapterFromDb != null &&
-              chapter.audioPath != chapterFromDb.audioPath &&
-              chapterFromDb.localAudioPath != null) {
-            //delete file at authorFromDb.localImagePath
-
-            try {
-              final fileToDelete = File(chapterFromDb.localAudioPath ?? "");
-              if (await fileToDelete.exists()) {
-                await fileToDelete.delete();
-              }
-            } catch (e) {
-              _log.d("error deleting file at: ${chapterFromDb.localAudioPath}");
-              return Result.error(e);
-            }
-          }
+          final localAudioPath = chapterFromDb?.localAudioPath;
 
           final Result<void> chapterSaveResult = await _localDbService
-              .saveChapter(chapter);
+              .saveChapter(
+                chapter.copyWith(
+                  localAudioPath:
+                      (chapterFromDb != null &&
+                          chapter.audioPath == chapterFromDb.audioPath)
+                      ? localAudioPath
+                      : null,
+                ),
+              );
 
           if (chapterSaveResult is Error) {
             _log.d(
@@ -349,6 +371,14 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
             );
             return chapterSaveResult;
           }
+          if (chapterFromDb != null) {
+            allChaptersFromDb.removeWhere((c) => (c.id == chapter.id));
+          }
+        }
+
+        for (final chapterToDelete in allChaptersFromDb) {
+          _log.i("deleting chapter with id ${chapterToDelete.id}");
+          _localDbService.deleteChapterById(chapterToDelete.id);
         }
 
         //(also, later update audiobook's current timestamp, duration left, and update bookmarks, if any, as required)
@@ -366,6 +396,16 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   @override
   Stream<List<Author>> getAllAuthorsStream() {
     return _localDbService.getAllAuthorsStream();
+  }
+
+  @override
+  Stream<Author?> getAuthorByIdStream(String id) {
+    return _localDbService.getAuthorByIdStream(id);
+  }
+
+  @override
+  Stream<List<Audiobook>> getAudiobooksByAuthorId(String authorId) {
+    return _localDbService.getAudiobooksByAuthorId(authorId);
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:duck_router/duck_router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -42,10 +43,7 @@ Future<void> setupDependencies() async {
   );
 
   getIt.registerSingleton(
-    RemoteStorageServiceFirebase(
-          firebaseStorage: getIt(),
-          // appDocsDir: getIt(instanceName: Constants.appDocsDirInstanceName),
-        )
+    RemoteStorageServiceFirebase(firebaseStorage: getIt())
         as RemoteStorageService,
   );
 
@@ -63,26 +61,8 @@ Future<void> setupDependencies() async {
         )
         as AudiobooksRepository,
   );
-  // getIt.registerSingleton(
-  //   GlobalKey<NavigatorState>(),
-  //   instanceName: Constants.rootNavigatorinstanceName,
-  // );
-  // getIt.registerSingleton(
-  //   GlobalKey<NavigatorState>(),
-  //   instanceName: Constants.shellNavigatorinstanceName,
-  // );
 
-  // getIt.registerSingleton(
-  //   router(
-  //     rootNavigatorKey: getIt(
-  //       instanceName: Constants.rootNavigatorinstanceName,
-  //     ),
-  //     shellNavigatorKey: getIt(
-  //       instanceName: Constants.shellNavigatorinstanceName,
-  //     ),
-  //   ),
-  // );
-  getIt.registerSingleton(AppRouter());
+  getIt.registerSingleton(DuckRouter(initialLocation: HomeLocation()));
 }
 
 Future<void> initFirebase() async {

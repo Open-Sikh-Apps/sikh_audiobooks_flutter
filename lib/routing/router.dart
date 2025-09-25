@@ -1,73 +1,110 @@
-// GoRouter router({
-//   required GlobalKey<NavigatorState> rootNavigatorKey,
-//   required GlobalKey<NavigatorState> shellNavigatorKey,
-// }) {
-//   return GoRouter(
-//     initialLocation: Routes.discover,
-//     navigatorKey: rootNavigatorKey,
-//     routes: <RouteBase>[
-//       ShellRoute(
-//         navigatorKey: shellNavigatorKey,
-//         builder: (context, state, child) {
-//           return HomeScreen(child: child);
-//         },
-//         routes: <RouteBase>[
-//           GoRoute(
-//             path: Routes.discover,
-//             builder: (context, state) {
-//               final viewModel = DiscoverViewModel(
-//                 audiobooksRepository: getIt(),
-//               );
-//               return DiscoverScreen(viewModel: viewModel);
-//             },
-//           ),
-//           GoRoute(
-//             path: Routes.library,
-//             builder: (context, state) {
-//               final viewModel = LibraryViewModel();
-//               return LibraryScreen(viewModel: viewModel);
-//             },
-//           ),
-//           GoRoute(
-//             path: "${Routes.author}/:id",
-//             builder: (contex, state) {
-//               return AuthorScreen(id: state.pathParameters["id"] ?? "");
-//             },
-//           ),
-//           GoRoute(
-//             path: "${Routes.audiobook}/:id",
-//             builder: (contex, state) {
-//               return AudiobookScreen(id: state.pathParameters["id"] ?? "");
-//             },
-//           ),
-//         ],
-//       ),
-//     ],
-//   );
-// }
-
-import 'package:auto_route/auto_route.dart';
-import 'package:sikh_audiobooks_flutter/routing/router.gr.dart';
+import 'package:duck_router/duck_router.dart';
+import 'package:sikh_audiobooks_flutter/main.dart';
 import 'package:sikh_audiobooks_flutter/routing/routes.dart';
+import 'package:sikh_audiobooks_flutter/ui/audiobook/viewmodels/audiobook_view_model.dart';
+import 'package:sikh_audiobooks_flutter/ui/audiobook/widgets/audiobook_screen.dart';
+import 'package:sikh_audiobooks_flutter/ui/author/viewmodels/author_view_model.dart';
+import 'package:sikh_audiobooks_flutter/ui/author/widgets/author_screen.dart';
+import 'package:sikh_audiobooks_flutter/ui/discover/viewmodels/discover_view_model.dart';
+import 'package:sikh_audiobooks_flutter/ui/discover/widgets/discover_screen.dart';
+import 'package:sikh_audiobooks_flutter/ui/home/widgets/home_screen.dart';
+import 'package:sikh_audiobooks_flutter/ui/library/viewmodels/library_view_model.dart';
+import 'package:sikh_audiobooks_flutter/ui/library/widgets/library_screen.dart';
+import 'package:sikh_audiobooks_flutter/ui/settings/viewmodels/settings_view_model.dart';
+import 'package:sikh_audiobooks_flutter/ui/settings/widgets/settings_screen.dart';
 
-@AutoRouterConfig(replaceInRouteName: 'Screen|Page,Route')
-class AppRouter extends RootStackRouter {
+class HomeLocation extends StatefulLocation {
   @override
-  RouteType get defaultRouteType => RouteType.material(); //.cupertino, .adaptive ..etc
+  StatefulLocationBuilder get childBuilder => (context, shell) {
+    return HomeScreen(shell: shell);
+  };
 
   @override
-  List<AutoRoute> get routes => [
-    AutoRoute(
-      path: Routes.home,
-      page: HomeRoute.page,
-      children: [
-        AutoRoute(path: Routes.discoverRelative, page: DiscoverRoute.page),
-        AutoRoute(path: Routes.libraryRelative, page: LibraryRoute.page),
-        AutoRoute(path: Routes.authorRelative, page: AuthorRoute.page),
-        AutoRoute(path: Routes.audiobookRelative, page: AudiobookRoute.page),
-      ],
-    ),
-    AutoRoute(path: Routes.settings, page: SettingsRoute.page),
-    AutoRoute(path: Routes.player, page: PlayerRoute.page),
+  List<Location> get children => [
+    const DiscoverLocation(),
+    const LibraryLocation(),
   ];
+
+  @override
+  String get path => Routes.home;
+}
+
+class DiscoverLocation extends Location {
+  const DiscoverLocation();
+
+  @override
+  String get path => Routes.discover;
+
+  @override
+  LocationBuilder? get builder => (context) {
+    final viewModel = getIt.registerSingletonIfAbsent(
+      () => DiscoverViewModel(audiobooksRepository: getIt()),
+    );
+    return DiscoverScreen(viewModel: viewModel);
+  };
+}
+
+class LibraryLocation extends Location {
+  const LibraryLocation();
+
+  @override
+  String get path => Routes.library;
+
+  @override
+  LocationBuilder? get builder => (context) {
+    final viewModel = getIt.registerSingletonIfAbsent(() => LibraryViewModel());
+    return LibraryScreen(viewModel: viewModel);
+  };
+}
+
+class AuthorLocation extends Location {
+  const AuthorLocation(this.id);
+
+  final String id;
+
+  @override
+  String get path => Routes.authorWithId(id);
+
+  @override
+  LocationBuilder? get builder => (context) {
+    final viewModel = getIt.registerSingletonIfAbsent(
+      () => AuthorViewModel(audiobooksRepository: getIt(), id: id),
+      instanceName: id,
+    );
+    return AuthorScreen(viewModel: viewModel);
+  };
+}
+
+class AudiobookLocation extends Location {
+  const AudiobookLocation(this.id);
+
+  final String id;
+
+  @override
+  String get path => Routes.audiobookWithId(id);
+
+  @override
+  LocationBuilder? get builder => (context) {
+    final viewModel = getIt.registerSingletonIfAbsent(
+      () => AudiobookViewModel(audiobooksRepository: getIt(), id: id),
+      instanceName: id,
+    );
+    return AudiobookScreen(viewModel: viewModel);
+  };
+}
+
+class SettingsLocation extends Location {
+  const SettingsLocation();
+
+  @override
+  String get path => Routes.settings;
+
+  @override
+  LocationBuilder? get builder => (context) {
+    final viewModel = getIt.registerSingletonIfAbsent(
+      () => SettingsViewmodel(userSettingsRepository: getIt()),
+    );
+
+    return SettingsScreen(viewModel: viewModel);
+  };
 }

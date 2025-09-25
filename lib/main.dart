@@ -1,10 +1,9 @@
 import 'package:command_it/command_it.dart';
+import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
-// import 'package:go_router/go_router.dart';
 import 'package:sikh_audiobooks_flutter/config/dependencies.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/main_view_model.dart';
-import 'package:sikh_audiobooks_flutter/routing/router.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/themes/dimens.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
 import 'package:sikh_audiobooks_flutter/utils/utils.dart';
@@ -19,19 +18,15 @@ Future<void> main() async {
   runApp(
     MainApp(
       mainViewModel: MainViewModel(userSettingsRepository: getIt()),
-      appRouter: getIt(),
+      router: getIt(),
     ),
   );
 }
 
 class MainApp extends WatchingWidget {
-  const MainApp({
-    super.key,
-    required this.mainViewModel,
-    required this.appRouter,
-  });
+  const MainApp({super.key, required this.mainViewModel, required this.router});
   final MainViewModel mainViewModel;
-  final AppRouter appRouter;
+  final DuckRouter router;
 
   @override
   Widget build(BuildContext context) {
@@ -49,11 +44,7 @@ class MainApp extends WatchingWidget {
         if (result is Error) {
           return ErrorHome();
         } else {
-          return RouterHome(
-            mainViewModel: mainViewModel,
-            // goRouter: getIt(),
-            appRouter: appRouter,
-          );
+          return RouterHome(mainViewModel: mainViewModel, router: router);
         }
       },
     );
@@ -64,13 +55,11 @@ class RouterHome extends WatchingWidget {
   const RouterHome({
     super.key,
     required this.mainViewModel,
-    // required this.goRouter,
-    required this.appRouter,
+    required this.router,
   });
 
   final MainViewModel mainViewModel;
-  // final GoRouter goRouter;
-  final AppRouter appRouter;
+  final DuckRouter router;
 
   @override
   Widget build(BuildContext context) {
@@ -88,8 +77,7 @@ class RouterHome extends WatchingWidget {
       darkTheme: ThemeData.dark(),
       themeMode: userThemeMode,
       locale: userLocale,
-      // routerConfig: goRouter,
-      routerConfig: appRouter.config(),
+      routerConfig: router,
     );
   }
 }

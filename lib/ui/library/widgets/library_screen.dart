@@ -1,10 +1,8 @@
-import 'package:auto_route/auto_route.dart';
 import 'package:flutter/material.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/ui/library/viewmodels/library_view_model.dart';
 import 'package:watch_it/watch_it.dart';
 
-@RoutePage()
 class LibraryScreen extends WatchingWidget {
   const LibraryScreen({super.key, required this.viewModel});
   final LibraryViewModel viewModel;

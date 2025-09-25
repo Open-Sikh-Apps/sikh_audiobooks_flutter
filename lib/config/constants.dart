@@ -8,5 +8,8 @@ abstract final class Constants {
   static const authorsDbKey = "authors";
   static const audioBooksDbKey = "audioBooks";
   static const chaptersDbKey = "chapters";
+  static const audiobookResumeLocationsDbKey = "audiobook-resume-locations";
+  static const bookmarksDbKey = "bookmarks";
+  static const inLibraryDbKey = "in-library";
   static const animatedSwitcherDuration = Duration(milliseconds: 500);
 }

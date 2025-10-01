@@ -46,4 +46,68 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get labelAuthors => 'ਲੇਖਕ';
+
+  @override
+  String get labelAbout => 'ਇਸ ਬਾਰੇ';
+
+  @override
+  String get labelShare => 'ਸਾਂਝਾ ਕਰੋ';
+
+  @override
+  String get labelFilter => 'ਫਿਲਟਰ';
+
+  @override
+  String get labelAll => 'ਸਭ';
+
+  @override
+  String get labelDownloaded => 'ਡਾਊਨਲੋਡ ਕੀਤਾ';
+
+  @override
+  String get labelSort => 'ਕ੍ਰਮਬੱਧ ਕਰੋ';
+
+  @override
+  String get labelDefault => 'ਡਿਫਾਲਟ';
+
+  @override
+  String get labelLastPlayed => 'ਚਲਾਇਆ ਗਿਆ';
+
+  @override
+  String get labelTitle => 'ਸਿਰਲੇਖ';
+
+  @override
+  String get labelAudiobooks => 'ਆਡੀਓ ਕਿਤਾਬਾਂ';
+
+  @override
+  String labelAudiobookDuration(int inHours, int inMinutes) {
+    return '$inHoursਘੰ $inMinutesਮਿੰ';
+  }
+
+  @override
+  String labelAudiobookDurationLeft(int inHours, int inMinutes) {
+    return '$inHoursਘੰ $inMinutesਮਿੰ ਬਾਕੀ';
+  }
+
+  @override
+  String get labelViewChapters => 'ਅਧਿਆਏ ਵੇਖੋ';
+
+  @override
+  String get labelDownload => 'ਡਾਊਨਲੋਡ ਕਰੋ';
+
+  @override
+  String get labelRemoveDownload => 'ਡਾਊਨਲੋਡ ਹਟਾਓ';
+
+  @override
+  String get labelAddToLibrary => 'ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚ ਜੋੜੋ';
+
+  @override
+  String get labelRemoveFromLibrary => 'ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚੋਂ ਹਟਾਓ';
+
+  @override
+  String get labelBookmarks => 'ਬੁੱਕਮਾਰਕਸ';
+
+  @override
+  String get labelReadBook => 'ਕਿਤਾਬ ਪੜ੍ਹੋ';
+
+  @override
+  String get labelAuthor => 'ਲੇਖਕ';
 }

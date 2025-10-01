@@ -175,6 +175,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Authors'**
   String get labelAuthors;
+
+  /// Label for About
+  ///
+  /// In en, this message translates to:
+  /// **'About'**
+  String get labelAbout;
+
+  /// Label for Share
+  ///
+  /// In en, this message translates to:
+  /// **'Share'**
+  String get labelShare;
+
+  /// Label for Filter
+  ///
+  /// In en, this message translates to:
+  /// **'Filter'**
+  String get labelFilter;
+
+  /// Label for All
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get labelAll;
+
+  /// Label for Downloaded
+  ///
+  /// In en, this message translates to:
+  /// **'Downloaded'**
+  String get labelDownloaded;
+
+  /// Label for Sort
+  ///
+  /// In en, this message translates to:
+  /// **'Sort'**
+  String get labelSort;
+
+  /// Label for Default
+  ///
+  /// In en, this message translates to:
+  /// **'Default'**
+  String get labelDefault;
+
+  /// Label for Last Played
+  ///
+  /// In en, this message translates to:
+  /// **'Last Played'**
+  String get labelLastPlayed;
+
+  /// Label for Title
+  ///
+  /// In en, this message translates to:
+  /// **'Title'**
+  String get labelTitle;
+
+  /// Label for Audiobooks
+  ///
+  /// In en, this message translates to:
+  /// **'Audiobooks'**
+  String get labelAudiobooks;
+
+  /// Label for Audibook Duration
+  ///
+  /// In en, this message translates to:
+  /// **'{inHours}h {inMinutes}m'**
+  String labelAudiobookDuration(int inHours, int inMinutes);
+
+  /// Label for Audibook Duration Left
+  ///
+  /// In en, this message translates to:
+  /// **'{inHours}h {inMinutes}m left'**
+  String labelAudiobookDurationLeft(int inHours, int inMinutes);
+
+  /// Label for View Chapters
+  ///
+  /// In en, this message translates to:
+  /// **'View Chapters'**
+  String get labelViewChapters;
+
+  /// Label for Download
+  ///
+  /// In en, this message translates to:
+  /// **'Download'**
+  String get labelDownload;
+
+  /// Label for Remove Download
+  ///
+  /// In en, this message translates to:
+  /// **'Remove Download'**
+  String get labelRemoveDownload;
+
+  /// Label for Add to Library
+  ///
+  /// In en, this message translates to:
+  /// **'Add to Library'**
+  String get labelAddToLibrary;
+
+  /// Label for Remove from Library
+  ///
+  /// In en, this message translates to:
+  /// **'Remove from Library'**
+  String get labelRemoveFromLibrary;
+
+  /// Label for Bookmarks
+  ///
+  /// In en, this message translates to:
+  /// **'Bookmarks'**
+  String get labelBookmarks;
+
+  /// Label for Read Book
+  ///
+  /// In en, this message translates to:
+  /// **'Read Book'**
+  String get labelReadBook;
+
+  /// Label for Author
+  ///
+  /// In en, this message translates to:
+  /// **'Author'**
+  String get labelAuthor;
 }
 
 class _AppLocalizationsDelegate

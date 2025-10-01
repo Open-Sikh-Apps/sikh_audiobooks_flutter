@@ -1,19 +1,20 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-part of 'duration.dart';
+part of 'api_duration.dart';
 
 // **************************************************************************
 // JsonSerializableGenerator
 // **************************************************************************
 
-_Duration _$DurationFromJson(Map<String, dynamic> json) => _Duration(
+_ApiDuration _$ApiDurationFromJson(Map<String, dynamic> json) => _ApiDuration(
   hours: (json['hours'] as num?)?.toInt(),
   minutes: (json['minutes'] as num?)?.toInt(),
   seconds: (json['seconds'] as num?)?.toInt(),
 );
 
-Map<String, dynamic> _$DurationToJson(_Duration instance) => <String, dynamic>{
-  'hours': instance.hours,
-  'minutes': instance.minutes,
-  'seconds': instance.seconds,
-};
+Map<String, dynamic> _$ApiDurationToJson(_ApiDuration instance) =>
+    <String, dynamic>{
+      'hours': instance.hours,
+      'minutes': instance.minutes,
+      'seconds': instance.seconds,
+    };

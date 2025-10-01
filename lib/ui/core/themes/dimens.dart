@@ -9,9 +9,22 @@ abstract final class Dimens {
 
   /// General horizontal padding used to separate UI items
   static const paddingHorizontal = 20.0;
+  static const paddingHorizontalSmall = 12.0;
+  static const paddingHorizontalXS = 8.0;
+  static const paddingHorizontal2XS = 4.0;
+
+  static const paddingHorizontalLarge = 24.0;
+
+  static const paddingTopAppBarSpace = 100.0;
 
   /// General vertical padding used to separate UI items
   static const paddingVertical = 24.0;
+
+  static const paddingVerticalMedium = 16.0;
+
+  static const paddingVerticalSmall = 12.0;
+  static const paddingVerticalXS = 8.0;
+  static const paddingVertical2XS = 4.0;
 
   ///Header divider thicknes
   static const headerDividerThickness = 2.0;
@@ -23,13 +36,27 @@ abstract final class Dimens {
   static const errorIndicationIconTitlePadding = 8.0;
 
   /// Author grid photo size
-  static const authorPhotoSize = 140.0;
+  static const authorGridPhotoSize = 140.0;
+
+  /// Author screen photo size
+  static const authorScreenPhotoSize = 100.0;
 
   /// Author item inside spacing
   static const authorItemInsideSpacing = 4.0;
 
   /// Spacing between author items
   static const betweenAuthorItemsSpacing = 24.0;
+
+  static const authorScreenPhotoSpacing = 20.0;
+
+  static const chipSpacing = 12.0;
+  static const audiobookListPhotoWidth = 60.0;
+  static const audiobookListPhotoHeight = 90.0;
+
+  static const audiobookListItemPaddingHorizontal = 16.0;
+  static const audiobookListItemPaddingVertical = 8.0;
+  static const audiobookListItemProgressWidth = 60.0;
+  static const audiobookListItemIconSize = 40.0;
 
   /// Horizontal padding for screen edges
   double get paddingScreenHorizontal;

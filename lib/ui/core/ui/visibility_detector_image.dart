@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:sikh_audiobooks_flutter/config/constants.dart';
 import 'package:skeletonizer/skeletonizer.dart';
 import 'package:visibility_detector/visibility_detector.dart';
 
@@ -27,17 +28,21 @@ class VisibilityDetectorImage extends StatelessWidget {
 
     return VisibilityDetector(
       key: Key(keyString),
-      child: (currentLocalImagePath == null)
-          ? Skeletonizer.zone(
-              child: Bone(width: width, height: height),
-            )
-          : Image.file(
-              File(currentLocalImagePath),
-              width: width,
-              height: height,
-              errorBuilder: (context, error, stackTrace) =>
-                  Placeholder(fallbackHeight: height, fallbackWidth: width),
-            ),
+      child: AnimatedSwitcher(
+        duration: Constants.animatedSwitcherDuration,
+        child: (currentLocalImagePath == null)
+            ? Skeletonizer.zone(
+                child: Bone(width: width, height: height),
+              )
+            : Image.file(
+                File(currentLocalImagePath),
+                width: width,
+                height: height,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) =>
+                    Placeholder(fallbackHeight: height, fallbackWidth: width),
+              ),
+      ),
       onVisibilityChanged: (visibilityInfo) {
         if (localImagePath == null) {
           if (visibilityInfo.visibleFraction > 0) {

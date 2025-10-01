@@ -51,5 +51,105 @@
   "labelAuthors": "Authors",
   "@labelAuthors": {
     "description": "Label for Authors"
+  },
+  "labelAbout": "About",
+  "@labelAbout": {
+    "description": "Label for About"
+  },
+  "labelShare": "Share",
+  "@labelShare": {
+    "description": "Label for Share"
+  },
+  "labelFilter": "Filter",
+  "@labelFilter": {
+    "description": "Label for Filter"
+  },
+  "labelAll": "All",
+  "@labelAll": {
+    "description": "Label for All"
+  },
+  "labelDownloaded": "Downloaded",
+  "@labelDownloaded": {
+    "description": "Label for Downloaded"
+  },
+  "labelSort": "Sort",
+  "@labelSort": {
+    "description": "Label for Sort"
+  },
+  "labelDefault": "Default",
+  "@labelDefault": {
+    "description": "Label for Default"
+  },
+  "labelLastPlayed": "Last Played",
+  "@labelLastPlayed": {
+    "description": "Label for Last Played"
+  },
+  "labelTitle": "Title",
+  "@labelTitle": {
+    "description": "Label for Title"
+  },
+  "labelAudiobooks": "Audiobooks",
+  "@labelAudiobooks": {
+    "description": "Label for Audiobooks"
+  },
+  "labelAudiobookDuration": "{inHours}h {inMinutes}m",
+  "@labelAudiobookDuration": {
+    "description": "Label for Audibook Duration",
+    "placeholders": {
+      "inHours": {
+        "type": "int",
+        "example": "7"
+      },
+      "inMinutes": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "labelAudiobookDurationLeft": "{inHours}h {inMinutes}m left",
+  "@labelAudiobookDurationLeft": {
+    "description": "Label for Audibook Duration Left",
+    "placeholders": {
+      "inHours": {
+        "type": "int",
+        "example": "4"
+      },
+      "inMinutes": {
+        "type": "int",
+        "example": "35"
+      }
+    }
+  },
+  "labelViewChapters": "View Chapters",
+  "@labelViewChapters": {
+    "description": "Label for View Chapters"
+  },
+  "labelDownload": "Download",
+  "@labelDownload": {
+    "description": "Label for Download"
+  },
+  "labelRemoveDownload": "Remove Download",
+  "@labelRemoveDownload": {
+    "description": "Label for Remove Download"
+  },
+  "labelAddToLibrary": "Add to Library",
+  "@labelAddToLibrary": {
+    "description": "Label for Add to Library"
+  },
+  "labelRemoveFromLibrary": "Remove from Library",
+  "@labelRemoveFromLibrary": {
+    "description": "Label for Remove from Library"
+  },
+  "labelBookmarks": "Bookmarks",
+  "@labelBookmarks": {
+    "description": "Label for Bookmarks"
+  },
+  "labelReadBook": "Read Book",
+  "@labelReadBook": {
+    "description": "Label for Read Book"
+  },
+  "labelAuthor": "Author",
+  "@labelAuthor": {
+    "description": "Label for Author"
   }
 }

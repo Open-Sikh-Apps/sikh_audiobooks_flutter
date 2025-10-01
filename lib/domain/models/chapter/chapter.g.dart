@@ -13,7 +13,7 @@ _Chapter _$ChapterFromJson(Map<String, dynamic> json) => _Chapter(
   name: Map<String, String>.from(json['name'] as Map),
   audioPath: json['audioPath'] as String,
   pdfUrl: json['pdfUrl'] as String?,
-  duration: Duration.fromJson(json['duration'] as Map<String, dynamic>),
+  duration: ApiDuration.fromJson(json['duration'] as Map<String, dynamic>),
   localAudioPath: json['localAudioPath'] as String?,
 );
 

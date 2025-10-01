@@ -1,6 +1,5 @@
 import 'dart:io';
 
-import 'package:duck_router/duck_router.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_storage/firebase_storage.dart';
@@ -62,7 +61,7 @@ Future<void> setupDependencies() async {
         as AudiobooksRepository,
   );
 
-  getIt.registerSingleton(DuckRouter(initialLocation: HomeLocation()));
+  getIt.registerSingleton(router());
 }
 
 Future<void> initFirebase() async {

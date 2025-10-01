@@ -22,7 +22,7 @@ mixin _$Chapter {
  Map<String, String> get name;/// ref path to the chapter's audio in cloud storage
  String get audioPath;/// pdf url, if PdfUrlType of this book is per "chapter"
  String? get pdfUrl;/// duration of this chapter's audio
- Duration get duration;/// path to locally stored audio, if any
+ ApiDuration get duration;/// path to locally stored audio, if any
  String? get localAudioPath;
 /// Create a copy of Chapter
 /// with the given fields replaced by the non-null parameter values.
@@ -56,11 +56,11 @@ abstract mixin class $ChapterCopyWith<$Res>  {
   factory $ChapterCopyWith(Chapter value, $Res Function(Chapter) _then) = _$ChapterCopyWithImpl;
 @useResult
 $Res call({
- String id, String audioBookId, int audioBookOrder, Map<String, String> name, String audioPath, String? pdfUrl, Duration duration, String? localAudioPath
+ String id, String audioBookId, int audioBookOrder, Map<String, String> name, String audioPath, String? pdfUrl, ApiDuration duration, String? localAudioPath
 });
 
 
-$DurationCopyWith<$Res> get duration;
+$ApiDurationCopyWith<$Res> get duration;
 
 }
 /// @nodoc
@@ -82,7 +82,7 @@ as int,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nu
 as Map<String, String>,audioPath: null == audioPath ? _self.audioPath : audioPath // ignore: cast_nullable_to_non_nullable
 as String,pdfUrl: freezed == pdfUrl ? _self.pdfUrl : pdfUrl // ignore: cast_nullable_to_non_nullable
 as String?,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
-as Duration,localAudioPath: freezed == localAudioPath ? _self.localAudioPath : localAudioPath // ignore: cast_nullable_to_non_nullable
+as ApiDuration,localAudioPath: freezed == localAudioPath ? _self.localAudioPath : localAudioPath // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -90,9 +90,9 @@ as String?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$DurationCopyWith<$Res> get duration {
+$ApiDurationCopyWith<$Res> get duration {
   
-  return $DurationCopyWith<$Res>(_self.duration, (value) {
+  return $ApiDurationCopyWith<$Res>(_self.duration, (value) {
     return _then(_self.copyWith(duration: value));
   });
 }
@@ -177,7 +177,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String audioBookId,  int audioBookOrder,  Map<String, String> name,  String audioPath,  String? pdfUrl,  Duration duration,  String? localAudioPath)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( String id,  String audioBookId,  int audioBookOrder,  Map<String, String> name,  String audioPath,  String? pdfUrl,  ApiDuration duration,  String? localAudioPath)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Chapter() when $default != null:
 return $default(_that.id,_that.audioBookId,_that.audioBookOrder,_that.name,_that.audioPath,_that.pdfUrl,_that.duration,_that.localAudioPath);case _:
@@ -198,7 +198,7 @@ return $default(_that.id,_that.audioBookId,_that.audioBookOrder,_that.name,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String audioBookId,  int audioBookOrder,  Map<String, String> name,  String audioPath,  String? pdfUrl,  Duration duration,  String? localAudioPath)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( String id,  String audioBookId,  int audioBookOrder,  Map<String, String> name,  String audioPath,  String? pdfUrl,  ApiDuration duration,  String? localAudioPath)  $default,) {final _that = this;
 switch (_that) {
 case _Chapter():
 return $default(_that.id,_that.audioBookId,_that.audioBookOrder,_that.name,_that.audioPath,_that.pdfUrl,_that.duration,_that.localAudioPath);case _:
@@ -218,7 +218,7 @@ return $default(_that.id,_that.audioBookId,_that.audioBookOrder,_that.name,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String audioBookId,  int audioBookOrder,  Map<String, String> name,  String audioPath,  String? pdfUrl,  Duration duration,  String? localAudioPath)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( String id,  String audioBookId,  int audioBookOrder,  Map<String, String> name,  String audioPath,  String? pdfUrl,  ApiDuration duration,  String? localAudioPath)?  $default,) {final _that = this;
 switch (_that) {
 case _Chapter() when $default != null:
 return $default(_that.id,_that.audioBookId,_that.audioBookOrder,_that.name,_that.audioPath,_that.pdfUrl,_that.duration,_that.localAudioPath);case _:
@@ -256,7 +256,7 @@ class _Chapter implements Chapter {
 /// pdf url, if PdfUrlType of this book is per "chapter"
 @override final  String? pdfUrl;
 /// duration of this chapter's audio
-@override final  Duration duration;
+@override final  ApiDuration duration;
 /// path to locally stored audio, if any
 @override final  String? localAudioPath;
 
@@ -293,11 +293,11 @@ abstract mixin class _$ChapterCopyWith<$Res> implements $ChapterCopyWith<$Res> {
   factory _$ChapterCopyWith(_Chapter value, $Res Function(_Chapter) _then) = __$ChapterCopyWithImpl;
 @override @useResult
 $Res call({
- String id, String audioBookId, int audioBookOrder, Map<String, String> name, String audioPath, String? pdfUrl, Duration duration, String? localAudioPath
+ String id, String audioBookId, int audioBookOrder, Map<String, String> name, String audioPath, String? pdfUrl, ApiDuration duration, String? localAudioPath
 });
 
 
-@override $DurationCopyWith<$Res> get duration;
+@override $ApiDurationCopyWith<$Res> get duration;
 
 }
 /// @nodoc
@@ -319,7 +319,7 @@ as int,name: null == name ? _self._name : name // ignore: cast_nullable_to_non_n
 as Map<String, String>,audioPath: null == audioPath ? _self.audioPath : audioPath // ignore: cast_nullable_to_non_nullable
 as String,pdfUrl: freezed == pdfUrl ? _self.pdfUrl : pdfUrl // ignore: cast_nullable_to_non_nullable
 as String?,duration: null == duration ? _self.duration : duration // ignore: cast_nullable_to_non_nullable
-as Duration,localAudioPath: freezed == localAudioPath ? _self.localAudioPath : localAudioPath // ignore: cast_nullable_to_non_nullable
+as ApiDuration,localAudioPath: freezed == localAudioPath ? _self.localAudioPath : localAudioPath // ignore: cast_nullable_to_non_nullable
 as String?,
   ));
 }
@@ -328,9 +328,9 @@ as String?,
 /// with the given fields replaced by the non-null parameter values.
 @override
 @pragma('vm:prefer-inline')
-$DurationCopyWith<$Res> get duration {
+$ApiDurationCopyWith<$Res> get duration {
   
-  return $DurationCopyWith<$Res>(_self.duration, (value) {
+  return $ApiDurationCopyWith<$Res>(_self.duration, (value) {
     return _then(_self.copyWith(duration: value));
   });
 }

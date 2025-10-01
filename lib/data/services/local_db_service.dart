@@ -3,13 +3,14 @@ import 'dart:io';
 
 import 'package:get_it/get_it.dart';
 import 'package:logger/logger.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:sembast/sembast.dart';
 import 'package:sikh_audiobooks_flutter/config/constants.dart';
+import 'package:sikh_audiobooks_flutter/domain/models/api_duration/api_duration.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/audiobook/audiobook.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/audiobook_resume_location/audiobook_resume_location.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/author/author.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/chapter/chapter.dart';
-import 'package:sikh_audiobooks_flutter/domain/models/duration/duration.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
 
 class LocalDbService extends Disposable {
@@ -89,13 +90,13 @@ class LocalDbService extends Disposable {
       finder: Finder(sortOrders: [SortOrder(_authorOrderKey)]),
     );
 
-    return query.onSnapshots(_db).map((snapshots) {
-      final List<Author> result = [];
-      for (var snapshot in snapshots) {
-        result.add(Author.fromJson(snapshot.value));
-      }
-      return result;
-    });
+    return query
+        .onSnapshots(_db)
+        .map(
+          (snapshots) => (snapshots
+              .map((snapshot) => (Author.fromJson(snapshot.value)))
+              .toList()),
+        );
   }
 
   Future<Result<List<Author>>> getAllAuthors() async {
@@ -192,17 +193,17 @@ class LocalDbService extends Disposable {
     }
   }
 
-  Stream<List<Audiobook>> getAudiobooksByAuthorId(String authorId) {
+  Stream<List<Audiobook>> getAudiobooksByAuthorIdStream(String authorId) {
     final query = _audiobooksStore.query(
       finder: Finder(filter: Filter.equals(_audiobookAuthorIdKey, authorId)),
     );
-    return query.onSnapshots(_db).map((snapshots) {
-      final List<Audiobook> result = [];
-      for (var snapshot in snapshots) {
-        result.add(Audiobook.fromJson(snapshot.value));
-      }
-      return result;
-    });
+    return query
+        .onSnapshots(_db)
+        .map(
+          (snapshots) => (snapshots
+              .map((snapshot) => (Audiobook.fromJson(snapshot.value)))
+              .toList()),
+        );
   }
 
   Future<Result<List<Audiobook>>> getAllAudiobooks() async {
@@ -313,6 +314,32 @@ class LocalDbService extends Disposable {
     } catch (e) {
       return Result.error(e);
     }
+  }
+
+  Stream<List<Chapter>> getChaptersByAudiobookIdsStream(
+    List<String> audiobookIds,
+  ) {
+    final query = _chaptersStore.query(
+      finder: Finder(
+        filter: Filter.inList(_chapterAudioBookIdKey, audiobookIds),
+        sortOrders: [SortOrder(_chapterAudioBookOrderKey)],
+      ),
+    );
+    return query
+        .onSnapshots(_db)
+        .map(
+          (snapshots) => (snapshots
+              .map((snapshot) => (Chapter.fromJson(snapshot.value)))
+              .toList()),
+        );
+  }
+
+  Stream<List<Chapter>> getChaptersByAuthorIdStream(String authorId) {
+    return getAudiobooksByAuthorIdStream(authorId).flatMap(
+      (audiobookIds) => (getChaptersByAudiobookIdsStream(
+        audiobookIds.map((a) => (a.id)).toList(),
+      )),
+    );
   }
 
   FutureOr<void> _chapterOnChanges(
@@ -436,7 +463,8 @@ class LocalDbService extends Disposable {
                       _audiobookResumeLocationChapterIdKey: prevChapter.id,
                       _audiobookResumeLocationLocationInSecondsKey: prevChapter
                           .duration
-                          .toSeconds(),
+                          .toDuration()
+                          .inSeconds,
                     });
                   } else {
                     await audiobookResumeLocationRecord.delete(txn);
@@ -459,6 +487,55 @@ class LocalDbService extends Disposable {
     }
   }
 
+  Stream<List<String>> getInLibraryByAudiobookIdsStream(
+    List<String> audiobookIds,
+  ) {
+    final query = _inLibraryStore.query(
+      finder: Finder(filter: Filter.inList(Field.key, audiobookIds)),
+    );
+    return query
+        .onSnapshots(_db)
+        .map(
+          (snapshots) => (snapshots.map((snapshot) => (snapshot.key)).toList()),
+        );
+  }
+
+  Stream<List<String>> getInLibraryAudiobookIdsByAuthorIdStream(
+    String authorId,
+  ) {
+    return getAudiobooksByAuthorIdStream(authorId).flatMap(
+      (audiobookIds) => (getInLibraryByAudiobookIdsStream(
+        audiobookIds.map((a) => (a.id)).toList(),
+      )),
+    );
+  }
+
+  Stream<List<AudiobookResumeLocation>>
+  getAudiobookResumeLocationsByAudiobookIdsStream(List<String> audiobookIds) {
+    final query = _audiobookResumeLocationsStore.query(
+      finder: Finder(filter: Filter.inList(Field.key, audiobookIds)),
+    );
+    return query
+        .onSnapshots(_db)
+        .map(
+          (snapshots) => (snapshots
+              .map(
+                (snapshot) =>
+                    (AudiobookResumeLocation.fromJson(snapshot.value)),
+              )
+              .toList()),
+        );
+  }
+
+  Stream<List<AudiobookResumeLocation>>
+  getAudiobookResumeLocationsByAuthorIdStream(String authorId) {
+    return getAudiobooksByAuthorIdStream(authorId).flatMap(
+      (audiobookIds) => (getAudiobookResumeLocationsByAudiobookIdsStream(
+        audiobookIds.map((a) => (a.id)).toList(),
+      )),
+    );
+  }
+
   static const _authorOrderKey = "order";
 
   static const _audiobookAuthorIdKey = "authorId";
@@ -477,11 +554,5 @@ class LocalDbService extends Disposable {
     _authorsStore.removeOnChangesListener(_db, _authorOnChanges);
     _audiobooksStore.removeOnChangesListener(_db, _audiobookOnChanges);
     _chaptersStore.removeOnChangesListener(_db, _chapterOnChanges);
-  }
-}
-
-extension on Duration {
-  int toSeconds() {
-    return (seconds ?? 0) + ((minutes ?? 0) * 60) + ((hours ?? 0) * 60);
   }
 }

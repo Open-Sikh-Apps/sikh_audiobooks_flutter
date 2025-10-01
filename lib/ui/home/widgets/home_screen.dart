@@ -22,10 +22,10 @@ class _HomeScreenState extends State<HomeScreen> {
       bottomNavigationBar: NavigationBar(
         selectedIndex: currentPageIndex,
         onDestinationSelected: (index) {
-          DuckRouter.of(context).root();
           switch (index) {
             case 0:
             case 1:
+              DuckRouter.of(context).root();
               widget.shell.switchChild(index);
               setState(() {
                 currentPageIndex = index;

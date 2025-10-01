@@ -1,5 +1,5 @@
 import 'package:freezed_annotation/freezed_annotation.dart';
-import 'package:sikh_audiobooks_flutter/domain/models/duration/duration.dart';
+import 'package:sikh_audiobooks_flutter/domain/models/api_duration/api_duration.dart';
 
 part 'chapter.freezed.dart';
 part 'chapter.g.dart';
@@ -26,7 +26,7 @@ abstract class Chapter with _$Chapter {
     String? pdfUrl,
 
     /// duration of this chapter's audio
-    required Duration duration,
+    required ApiDuration duration,
 
     /// path to locally stored audio, if any
     String? localAudioPath,
@@ -34,4 +34,28 @@ abstract class Chapter with _$Chapter {
 
   factory Chapter.fromJson(Map<String, Object?> json) =>
       _$ChapterFromJson(json);
+}
+
+extension ChapterIterableExtensions on Iterable<Chapter> {
+  Duration totalDuration() {
+    return map(
+      (c) => (c.duration.toDuration()),
+    ).fold(Duration(), (previousValue, element) => (previousValue + element));
+  }
+
+  bool anyDownloaded() {
+    if (isEmpty) {
+      return false;
+    } else {
+      return any((c) => (c.localAudioPath != null));
+    }
+  }
+
+  bool allDownloaded() {
+    if (isEmpty) {
+      return false;
+    } else {
+      return every((c) => (c.localAudioPath != null));
+    }
+  }
 }

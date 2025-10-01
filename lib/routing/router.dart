@@ -108,3 +108,7 @@ class SettingsLocation extends Location {
     return SettingsScreen(viewModel: viewModel);
   };
 }
+
+DuckRouter router() {
+  return DuckRouter(initialLocation: HomeLocation());
+}

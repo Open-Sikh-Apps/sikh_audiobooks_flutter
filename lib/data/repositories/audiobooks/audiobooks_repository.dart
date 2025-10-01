@@ -14,6 +14,7 @@ import 'package:sikh_audiobooks_flutter/data/services/remote_db_service.dart';
 import 'package:sikh_audiobooks_flutter/data/services/remote_storage_service.dart';
 import 'package:sikh_audiobooks_flutter/data/services/shared_preferences_service.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/audiobook/audiobook.dart';
+import 'package:sikh_audiobooks_flutter/domain/models/audiobook_resume_location/audiobook_resume_location.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/author/author.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/chapter/chapter.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
@@ -30,7 +31,25 @@ abstract class AudiobooksRepository extends Disposable {
   Future<void> startDownloadAuthorImage(String authorId);
   Future<void> cancelDownloadAuthorImage(String authorId);
   Stream<Author?> getAuthorByIdStream(String id);
-  Stream<List<Audiobook>> getAudiobooksByAuthorId(String authorId);
+  Stream<List<Audiobook>> getAudiobooksByAuthorIdStream(String authorId);
+
+  Future<void> startDownloadAudiobookImage(String audiobookId);
+  Future<void> cancelDownloadAudiobookImage(String audiobookId);
+  Stream<List<Chapter>> getChaptersByAuthorIdStream(String authorId);
+  Stream<List<String>> getInLibraryAudiobookIdsByAuthorIdStream(
+    String authorId,
+  );
+  Stream<List<AudiobookResumeLocation>>
+  getAudiobookResumeLocationsByAuthorIdStream(String authorId);
+
+  // Stream<List<Chapter>> getChaptersByAudiobookIdsStream(
+  //   List<String> audiobookIds,
+  // );
+  // Stream<List<String>> getInLibraryByAudiobookIdsStream(
+  //   List<String> audiobookIds,
+  // );
+  // Stream<List<AudiobookResumeLocation>>
+  // getAudiobookResumeLocationsByAudiobookIdsStream(List<String> audiobookIds);
 }
 
 class AudiobooksRepositoryProd extends AudiobooksRepository {
@@ -51,7 +70,7 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   final RemoteDbService _remoteDbService;
   final RemoteStorageService _remoteStorageService;
   final LocalDbService _localDbService;
-  final Map<String, CancelableOperation> _downloadTasksMap = {};
+  final Map<String, CancelableOperation> _imageDownloadTasksMap = {};
   final Directory _appDocsDir;
 
   late final Command<void, Result<void>?> _refreshDataCommand =
@@ -73,7 +92,8 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   @override
   Future<void> startDownloadAuthorImage(String authorId) async {
     try {
-      if (_downloadTasksMap.containsKey(authorId)) {
+      if (_imageDownloadTasksMap.containsKey(authorId)) {
+        _log.d("already downloading");
         //already downloading, no need to download again
         return;
       }
@@ -103,23 +123,50 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
       final localFilePath = join(_appDocsDir.path, localFileName);
 
       _log.d(
-        "startDownloadAuthorImage new task authorId:$authorId\nlocalFilePath:$localFilePath",
+        "startDownloadAuthorImage new task authorId:$authorId\nlocalFilePath:$localFilePath\nstorageFilePath:${authorFromDb.imagePath}",
       );
 
       final cancelable = _remoteStorageService.downloadFileCancelable(
         storageFilePath: authorFromDb.imagePath,
         localFilePath: localFilePath,
       );
-      _downloadTasksMap[authorId] = cancelable;
+      _imageDownloadTasksMap[authorId] = cancelable;
       await cancelable.value;
 
+      final Result<Author?> authorFromDbAfterDownloadResult =
+          await _localDbService.getAuthorById(authorId);
+      final Author? authorFromDbAfterDownload;
+
+      switch (authorFromDbAfterDownloadResult) {
+        case Ok<Author?>():
+          authorFromDbAfterDownload = authorFromDbAfterDownloadResult.value;
+        case Error<Author?>():
+          _log.d(
+            "authorFromDbAfterDownloadResult is Error:\t$authorFromDbAfterDownloadResult",
+          );
+          throw authorFromDbAfterDownloadResult.error;
+      }
+      if (authorFromDbAfterDownload == null ||
+          authorFromDbAfterDownload.imagePath != authorFromDb.imagePath) {
+        throw Exception(
+          "authorFromDbAfterDownload == null || authorFromDbAfterDownload.imagePath != authorFromDb.imagePath",
+        );
+      }
+      if (authorFromDbAfterDownload.localImagePath != null) {
+        //image already downloaded
+        //no need to download again
+        return;
+      }
+
       final Result<void> saveAuthorResult = await _localDbService.saveAuthor(
-        authorFromDb.copyWith(localImagePath: localFilePath),
+        authorFromDbAfterDownload.copyWith(localImagePath: localFilePath),
       );
 
       if (saveAuthorResult is Error) {
         throw saveAuthorResult.error;
       }
+      //done downloading, remove from tasks
+      _imageDownloadTasksMap.remove(authorId);
     } catch (e) {
       _log.d("startDownloadAuthorImage catch", error: e);
     }
@@ -127,9 +174,105 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
 
   @override
   Future<void> cancelDownloadAuthorImage(String authorId) async {
-    if (_downloadTasksMap.containsKey(authorId)) {
+    if (_imageDownloadTasksMap.containsKey(authorId)) {
       _log.d("cancelDownloadAuthorImage new task authorId:$authorId");
-      final cancelable = _downloadTasksMap.remove(authorId);
+      final cancelable = _imageDownloadTasksMap.remove(authorId);
+      await cancelable?.cancel();
+    }
+  }
+
+  @override
+  Future<void> startDownloadAudiobookImage(String audiobookId) async {
+    try {
+      if (_imageDownloadTasksMap.containsKey(audiobookId)) {
+        _log.d("already downloading");
+        //already downloading, no need to download again
+        return;
+      }
+
+      final Result<Audiobook?> audiobookFromDbResult = await _localDbService
+          .getAudiobookById(audiobookId);
+      final Audiobook? audiobookFromDb;
+
+      switch (audiobookFromDbResult) {
+        case Ok<Audiobook?>():
+          audiobookFromDb = audiobookFromDbResult.value;
+        case Error<Audiobook?>():
+          _log.d("authorFromDbResult is Error:\t$audiobookFromDbResult");
+          throw audiobookFromDbResult.error;
+      }
+      if (audiobookFromDb == null) {
+        throw Exception("audiobookFromDb == null");
+      }
+      if (audiobookFromDb.localImagePath != null) {
+        //image already downloaded
+        //no need to download again
+        return;
+      }
+
+      final fileExtension = audiobookFromDb.imagePath.split(".").last;
+      final localFileName = "${audiobookFromDb.id}.$fileExtension";
+      final localFilePath = join(_appDocsDir.path, localFileName);
+
+      _log.d(
+        "startDownloadAudiobookImage new task authorId:$audiobookId\nlocalFilePath:$localFilePath\nstorageFilePath:${audiobookFromDb.imagePath}",
+      );
+
+      final cancelable = _remoteStorageService.downloadFileCancelable(
+        storageFilePath: audiobookFromDb.imagePath,
+        localFilePath: localFilePath,
+      );
+      _imageDownloadTasksMap[audiobookId] = cancelable;
+      await cancelable.value;
+
+      final Result<Audiobook?> audiobookFromDbAfterDownloadResult =
+          await _localDbService.getAudiobookById(audiobookId);
+      final Audiobook? audiobookFromDbAfterDownload;
+
+      switch (audiobookFromDbAfterDownloadResult) {
+        case Ok<Audiobook?>():
+          audiobookFromDbAfterDownload =
+              audiobookFromDbAfterDownloadResult.value;
+        case Error<Audiobook?>():
+          _log.d(
+            "audiobookFromDbAfterDownloadResult is Error:\t$audiobookFromDbAfterDownloadResult",
+          );
+          throw audiobookFromDbAfterDownloadResult.error;
+      }
+      if (audiobookFromDbAfterDownload == null ||
+          audiobookFromDbAfterDownload.imagePath != audiobookFromDb.imagePath) {
+        throw Exception(
+          "audiobookFromDbAfterDownload == null || audiobookFromDbAfterDownload.imagePath != audiobookFromDb.imagePath",
+        );
+      }
+      if (audiobookFromDbAfterDownload.localImagePath != null) {
+        //image already downloaded
+        //no need to download again
+        return;
+      }
+
+      final Result<void> saveAudiobookResult = await _localDbService
+          .saveAudiobook(
+            audiobookFromDbAfterDownload.copyWith(
+              localImagePath: localFilePath,
+            ),
+          );
+
+      if (saveAudiobookResult is Error) {
+        throw saveAudiobookResult.error;
+      }
+      //done downloading, remove from tasks
+      _imageDownloadTasksMap.remove(audiobookId);
+    } catch (e) {
+      _log.d("startDownloadAudiobookImage catch", error: e);
+    }
+  }
+
+  @override
+  Future<void> cancelDownloadAudiobookImage(String audiobookId) async {
+    if (_imageDownloadTasksMap.containsKey(audiobookId)) {
+      _log.d("cancelDownloadAudiobookImage new task audiobookId:$audiobookId");
+      final cancelable = _imageDownloadTasksMap.remove(audiobookId);
       await cancelable?.cancel();
     }
   }
@@ -404,10 +547,35 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   }
 
   @override
-  Stream<List<Audiobook>> getAudiobooksByAuthorId(String authorId) {
-    return _localDbService.getAudiobooksByAuthorId(authorId);
+  Stream<List<Audiobook>> getAudiobooksByAuthorIdStream(String authorId) {
+    return _localDbService.getAudiobooksByAuthorIdStream(authorId);
   }
 
   @override
-  FutureOr onDispose() {}
+  FutureOr onDispose() async {
+    for (final downloadTaskEntry in _imageDownloadTasksMap.entries) {
+      await downloadTaskEntry.value.cancel();
+      _imageDownloadTasksMap.remove(downloadTaskEntry.key);
+    }
+  }
+
+  @override
+  Stream<List<AudiobookResumeLocation>>
+  getAudiobookResumeLocationsByAuthorIdStream(String authorId) {
+    return _localDbService.getAudiobookResumeLocationsByAuthorIdStream(
+      authorId,
+    );
+  }
+
+  @override
+  Stream<List<Chapter>> getChaptersByAuthorIdStream(String authorId) {
+    return _localDbService.getChaptersByAuthorIdStream(authorId);
+  }
+
+  @override
+  Stream<List<String>> getInLibraryAudiobookIdsByAuthorIdStream(
+    String authorId,
+  ) {
+    return _localDbService.getInLibraryAudiobookIdsByAuthorIdStream(authorId);
+  }
 }

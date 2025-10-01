@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
+import 'package:sikh_audiobooks_flutter/config/constants.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/themes/dimens.dart';
 
-class SettingsTile<T> extends StatelessWidget {
-  SettingsTile({
+class SelectActionChip<T> extends StatelessWidget {
+  SelectActionChip({
     super.key,
     required this.icon,
     required this.title,
@@ -13,11 +14,12 @@ class SettingsTile<T> extends StatelessWidget {
     required this.options,
     required this.onSubmitted,
   });
+
   final Icon icon;
   final String title;
   final T selectedValue;
   final String selectionSheetTitle;
-  final List<SettingsTileOption<T>> options;
+  final List<SelectActionChipOption<T>> options;
   final void Function(T) onSubmitted;
   final _log = Logger();
 
@@ -35,24 +37,12 @@ class SettingsTile<T> extends StatelessWidget {
       );
       selectionTitle = AppLocalizations.of(context)?.labelNotSelected ?? "";
     }
-
-    return ListTile(
-      leading: icon,
-      title: Text(title, style: TextTheme.of(context).bodyLarge),
-      trailing: Wrap(
-        crossAxisAlignment: WrapCrossAlignment.center,
-        spacing: Dimens.paddingHorizontal,
-        children: [
-          Text(
-            selectionTitle,
-            style: TextTheme.of(
-              context,
-            ).bodyMedium?.copyWith(color: ColorScheme.of(context).secondary),
-          ),
-          Icon(Icons.chevron_right),
-        ],
+    return ActionChip(
+      label: Text(
+        title + Constants.titleSeparaterSelectActionChip + selectionTitle,
       ),
-      onTap: () {
+      avatar: icon,
+      onPressed: () {
         showModalBottomSheet(
           isScrollControlled: true,
           showDragHandle: true,
@@ -74,7 +64,6 @@ class SettingsTile<T> extends StatelessWidget {
                   Divider(),
                   ...options.map(
                     (option) => ListTile(
-                      leading: option.icon,
                       title: Text(
                         option.title,
                         style: TextTheme.of(context).bodyMedium,
@@ -95,14 +84,13 @@ class SettingsTile<T> extends StatelessWidget {
   }
 }
 
-class SettingsTileOption<T> {
-  SettingsTileOption({required this.value, required this.title, this.icon});
+class SelectActionChipOption<T> {
+  SelectActionChipOption({required this.value, required this.title});
   final T value;
   final String title;
-  final Icon? icon;
 
   @override
   String toString() {
-    return "$title:\t$value\nIcon:$icon";
+    return "$title:\t$value";
   }
 }

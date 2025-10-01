@@ -38,11 +38,11 @@ class DiscoverViewModel extends Disposable {
   ValueNotifier<Result<List<Author>>?> get allAuthorsResultVN =>
       _allAuthorsResultVN;
 
-  startDownloadAuthorImage(String authorId) {
+  void startDownloadAuthorImage(String authorId) {
     unawaited(_audiobooksRepository.startDownloadAuthorImage(authorId));
   }
 
-  cancelDownloadAuthorImage(String authorId) {
+  void cancelDownloadAuthorImage(String authorId) {
     unawaited(_audiobooksRepository.cancelDownloadAuthorImage(authorId));
   }
 

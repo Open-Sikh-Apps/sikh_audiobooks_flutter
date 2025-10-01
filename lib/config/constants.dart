@@ -12,4 +12,6 @@ abstract final class Constants {
   static const bookmarksDbKey = "bookmarks";
   static const inLibraryDbKey = "in-library";
   static const animatedSwitcherDuration = Duration(milliseconds: 500);
+
+  static const titleSeparaterSelectActionChip = ": ";
 }

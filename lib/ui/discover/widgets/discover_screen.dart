@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:command_it/command_it.dart';
 import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
@@ -13,6 +11,7 @@ import 'package:sikh_audiobooks_flutter/ui/core/ui/loading_indicator.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui/visibility_detector_image.dart';
 import 'package:sikh_audiobooks_flutter/ui/discover/viewmodels/discover_view_model.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
+import 'package:uuid/uuid.dart';
 import 'package:watch_it/watch_it.dart';
 
 class DiscoverScreen extends WatchingWidget {
@@ -122,10 +121,10 @@ class AuthorGrid extends StatelessWidget {
 }
 
 class AuthorItem extends StatelessWidget {
-  const AuthorItem({super.key, required this.author, required this.viewModel});
+  AuthorItem({super.key, required this.author, required this.viewModel});
   final DiscoverViewModel viewModel;
   final Author author;
-  // final _log = Logger();
+  final String uuid = Uuid().v1();
 
   @override
   Widget build(BuildContext context) {
@@ -138,21 +137,21 @@ class AuthorItem extends StatelessWidget {
         DuckRouter.of(context).navigate(to: AuthorLocation(authorId));
       },
       child: SizedBox(
-        width: Dimens.authorPhotoSize,
+        width: Dimens.authorGridPhotoSize,
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           spacing: Dimens.authorItemInsideSpacing,
           children: [
             VisibilityDetectorImage(
-              keyString: author.id,
+              keyString: "${uuid}_discover_${author.id}",
               localImagePath: localImagePath,
-              width: Dimens.authorPhotoSize,
-              height: Dimens.authorPhotoSize,
+              width: Dimens.authorGridPhotoSize,
+              height: Dimens.authorGridPhotoSize,
               onVisible: () {
-                unawaited(viewModel.startDownloadAuthorImage(author.id));
+                viewModel.startDownloadAuthorImage(author.id);
               },
               onHidden: () {
-                unawaited(viewModel.cancelDownloadAuthorImage(author.id));
+                viewModel.cancelDownloadAuthorImage(author.id);
               },
             ),
             Text(

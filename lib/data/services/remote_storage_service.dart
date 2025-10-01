@@ -85,7 +85,13 @@ class RemoteStorageServiceFirebase extends RemoteStorageService {
     final cancelableOperation = CancelableOperation.fromFuture(
       downloadTask,
       onCancel: () {
-        downloadTask.cancel();
+        try {
+          downloadTask.cancel();
+        } catch (e) {
+          _log.e(
+            "downloadTask.cancel() error:$e, storageFilePath:$storageFilePath",
+          );
+        }
       },
     );
     return cancelableOperation;

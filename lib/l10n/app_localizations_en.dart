@@ -46,4 +46,68 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelAuthors => 'Authors';
+
+  @override
+  String get labelAbout => 'About';
+
+  @override
+  String get labelShare => 'Share';
+
+  @override
+  String get labelFilter => 'Filter';
+
+  @override
+  String get labelAll => 'All';
+
+  @override
+  String get labelDownloaded => 'Downloaded';
+
+  @override
+  String get labelSort => 'Sort';
+
+  @override
+  String get labelDefault => 'Default';
+
+  @override
+  String get labelLastPlayed => 'Last Played';
+
+  @override
+  String get labelTitle => 'Title';
+
+  @override
+  String get labelAudiobooks => 'Audiobooks';
+
+  @override
+  String labelAudiobookDuration(int inHours, int inMinutes) {
+    return '${inHours}h ${inMinutes}m';
+  }
+
+  @override
+  String labelAudiobookDurationLeft(int inHours, int inMinutes) {
+    return '${inHours}h ${inMinutes}m left';
+  }
+
+  @override
+  String get labelViewChapters => 'View Chapters';
+
+  @override
+  String get labelDownload => 'Download';
+
+  @override
+  String get labelRemoveDownload => 'Remove Download';
+
+  @override
+  String get labelAddToLibrary => 'Add to Library';
+
+  @override
+  String get labelRemoveFromLibrary => 'Remove from Library';
+
+  @override
+  String get labelBookmarks => 'Bookmarks';
+
+  @override
+  String get labelReadBook => 'Read Book';
+
+  @override
+  String get labelAuthor => 'Author';
 }

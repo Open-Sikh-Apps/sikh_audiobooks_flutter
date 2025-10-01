@@ -1,3 +1,5 @@
+import 'package:back_button_interceptor/back_button_interceptor.dart';
+import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/ui/settings/viewmodels/settings_view_model.dart';
@@ -5,14 +7,36 @@ import 'package:sikh_audiobooks_flutter/ui/settings/widgets/settings_tile.dart';
 import 'package:sikh_audiobooks_flutter/utils/locale.dart';
 import 'package:watch_it/watch_it.dart';
 
-class SettingsScreen extends WatchingWidget {
+class SettingsScreen extends WatchingStatefulWidget {
   const SettingsScreen({super.key, required this.viewModel});
   final SettingsViewmodel viewModel;
 
   @override
+  State<SettingsScreen> createState() => _SettingsScreenState();
+}
+
+class _SettingsScreenState extends State<SettingsScreen> {
+  bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
+    DuckRouter.of(context).pop();
+    return true;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    BackButtonInterceptor.add(myInterceptor);
+  }
+
+  @override
+  void dispose() {
+    BackButtonInterceptor.remove(myInterceptor);
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final userLocale = watch(viewModel.userLocaleVN).value;
-    final userThemeMode = watch(viewModel.userThemeModeVN).value;
+    final userLocale = watch(widget.viewModel.userLocaleVN).value;
+    final userThemeMode = watch(widget.viewModel.userThemeModeVN).value;
 
     return Scaffold(
       appBar: AppBar(
@@ -43,7 +67,7 @@ class SettingsScreen extends WatchingWidget {
                 ),
               ],
               onSubmitted: (locale) {
-                viewModel.saveUserLocale(locale);
+                widget.viewModel.saveUserLocale(locale);
               },
             ),
             SettingsTile(
@@ -70,7 +94,7 @@ class SettingsScreen extends WatchingWidget {
                 ),
               ],
               onSubmitted: (themeMode) {
-                viewModel.saveUserThemeMode(themeMode);
+                widget.viewModel.saveUserThemeMode(themeMode);
               },
             ),
           ],

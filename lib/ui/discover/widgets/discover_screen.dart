@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:sikh_audiobooks_flutter/config/constants.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/author/author.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
+import 'package:sikh_audiobooks_flutter/main.dart';
 import 'package:sikh_audiobooks_flutter/routing/router.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/themes/dimens.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui/error_indicator.dart';
@@ -14,9 +15,15 @@ import 'package:sikh_audiobooks_flutter/utils/result.dart';
 import 'package:uuid/uuid.dart';
 import 'package:watch_it/watch_it.dart';
 
-class DiscoverScreen extends WatchingWidget {
-  const DiscoverScreen({super.key, required this.viewModel});
-  final DiscoverViewModel viewModel;
+class DiscoverScreen extends WatchingStatefulWidget {
+  const DiscoverScreen({super.key});
+
+  @override
+  State<DiscoverScreen> createState() => _DiscoverScreenState();
+}
+
+class _DiscoverScreenState extends State<DiscoverScreen> {
+  late final DiscoverViewModel viewModel;
 
   Widget _getErrorIndicatorWidget(BuildContext context) {
     return ErrorIndicator(
@@ -26,6 +33,18 @@ class DiscoverScreen extends WatchingWidget {
         viewModel.refreshDataCommand();
       },
     );
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    viewModel = DiscoverViewModel(audiobooksRepository: getIt());
+  }
+
+  @override
+  void dispose() {
+    viewModel.onDispose();
+    super.dispose();
   }
 
   @override

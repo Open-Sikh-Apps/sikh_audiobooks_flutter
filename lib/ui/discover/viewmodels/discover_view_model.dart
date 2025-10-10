@@ -47,8 +47,8 @@ class DiscoverViewModel extends Disposable {
   }
 
   @override
-  FutureOr onDispose() {
+  FutureOr onDispose() async {
     _allAuthorsResultVN.dispose();
-    _allAuthorsSubscription.cancel();
+    await _allAuthorsSubscription.cancel();
   }
 }

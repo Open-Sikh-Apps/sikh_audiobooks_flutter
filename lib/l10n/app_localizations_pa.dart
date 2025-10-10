@@ -110,4 +110,11 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get labelAuthor => 'ਲੇਖਕ';
+
+  @override
+  String get labelNoAudiobooksFound =>
+      'ਕੋਈ ਆਡੀਓ ਕਿਤਾਬਾਂ ਨਹੀਂ ਮਿਲੀਆਂ। ਫਿਲਟਰਾਂ ਨੂੰ ਐਡਜਸਟ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।';
+
+  @override
+  String get labelChapters => 'ਅਧਿਆਏ';
 }

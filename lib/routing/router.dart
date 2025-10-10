@@ -1,17 +1,12 @@
 import 'package:duck_router/duck_router.dart';
-import 'package:sikh_audiobooks_flutter/main.dart';
 import 'package:sikh_audiobooks_flutter/routing/routes.dart';
-import 'package:sikh_audiobooks_flutter/ui/audiobook/viewmodels/audiobook_view_model.dart';
 import 'package:sikh_audiobooks_flutter/ui/audiobook/widgets/audiobook_screen.dart';
-import 'package:sikh_audiobooks_flutter/ui/author/viewmodels/author_view_model.dart';
 import 'package:sikh_audiobooks_flutter/ui/author/widgets/author_screen.dart';
-import 'package:sikh_audiobooks_flutter/ui/discover/viewmodels/discover_view_model.dart';
 import 'package:sikh_audiobooks_flutter/ui/discover/widgets/discover_screen.dart';
 import 'package:sikh_audiobooks_flutter/ui/home/widgets/home_screen.dart';
-import 'package:sikh_audiobooks_flutter/ui/library/viewmodels/library_view_model.dart';
 import 'package:sikh_audiobooks_flutter/ui/library/widgets/library_screen.dart';
-import 'package:sikh_audiobooks_flutter/ui/settings/viewmodels/settings_view_model.dart';
 import 'package:sikh_audiobooks_flutter/ui/settings/widgets/settings_screen.dart';
+import 'package:uuid/uuid.dart';
 
 class HomeLocation extends StatefulLocation {
   @override
@@ -37,10 +32,7 @@ class DiscoverLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
-    final viewModel = getIt.registerSingletonIfAbsent(
-      () => DiscoverViewModel(audiobooksRepository: getIt()),
-    );
-    return DiscoverScreen(viewModel: viewModel);
+    return DiscoverScreen();
   };
 }
 
@@ -52,44 +44,38 @@ class LibraryLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
-    final viewModel = getIt.registerSingletonIfAbsent(() => LibraryViewModel());
-    return LibraryScreen(viewModel: viewModel);
+    return LibraryScreen();
   };
 }
 
 class AuthorLocation extends Location {
-  const AuthorLocation(this.id);
+  AuthorLocation(this.id);
+
+  final uuid = Uuid().v1();
 
   final String id;
 
   @override
-  String get path => Routes.authorWithId(id);
+  String get path => "${uuid}_${Routes.authorWithId(id)}";
 
   @override
   LocationBuilder? get builder => (context) {
-    final viewModel = getIt.registerSingletonIfAbsent(
-      () => AuthorViewModel(audiobooksRepository: getIt(), id: id),
-      instanceName: id,
-    );
-    return AuthorScreen(viewModel: viewModel);
+    return AuthorScreen(id: id);
   };
 }
 
 class AudiobookLocation extends Location {
-  const AudiobookLocation(this.id);
+  AudiobookLocation(this.id);
 
   final String id;
+  final uuid = Uuid().v1();
 
   @override
-  String get path => Routes.audiobookWithId(id);
+  String get path => "${uuid}_${Routes.audiobookWithId(id)}";
 
   @override
   LocationBuilder? get builder => (context) {
-    final viewModel = getIt.registerSingletonIfAbsent(
-      () => AudiobookViewModel(audiobooksRepository: getIt(), id: id),
-      instanceName: id,
-    );
-    return AudiobookScreen(viewModel: viewModel);
+    return AudiobookScreen(id: id);
   };
 }
 
@@ -101,11 +87,7 @@ class SettingsLocation extends Location {
 
   @override
   LocationBuilder? get builder => (context) {
-    final viewModel = getIt.registerSingletonIfAbsent(
-      () => SettingsViewmodel(userSettingsRepository: getIt()),
-    );
-
-    return SettingsScreen(viewModel: viewModel);
+    return SettingsScreen();
   };
 }
 

@@ -1,47 +1,30 @@
 // https://blog.stackademic.com/how-to-increase-the-height-of-listtile-in-flutter-e430dc577113
 
-// Custom list tile definition
+import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/audiobook/audiobook.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/audiobook_resume_location/audiobook_resume_location.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
+import 'package:sikh_audiobooks_flutter/main.dart';
+import 'package:sikh_audiobooks_flutter/routing/router.dart';
+import 'package:sikh_audiobooks_flutter/ui/audiobook/viewmodels/audiobook_view_model.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/themes/dimens.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui/visibility_detector_image.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui_state/audiobook_ui_state/audiobook_ui_state.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-class AudiobookListTile extends StatelessWidget {
+class AudiobookListTile extends StatefulWidget {
   final AudiobookUiState audiobookUiState;
   final String keyString;
   final bool showAuthor;
-  final void Function() onVisible;
-  final void Function() onHidden;
-  final void Function() onPlay;
-  final void Function() onPause;
-  final void Function() onDownload;
-  final void Function() onRemoveDownload;
-  final void Function() onAddToLibrary;
-  final void Function() onRemoveFromLibrary;
-  final void Function() onShare;
-  final void Function() onOpenBookmarks;
 
   // Constructor for the custom list tile
   AudiobookListTile({
     super.key,
     required this.audiobookUiState,
-    required this.onVisible,
-    required this.onHidden,
     required this.keyString,
     required this.showAuthor,
-    required this.onPlay,
-    required this.onPause,
-    required this.onDownload,
-    required this.onRemoveDownload,
-    required this.onAddToLibrary,
-    required this.onRemoveFromLibrary,
-    required this.onShare,
-    required this.onOpenBookmarks,
   }) {
     resumeLocation = audiobookUiState.resumeLocation;
     audiobookLocalImagePath = audiobookUiState.audiobook.localImagePath;
@@ -49,7 +32,28 @@ class AudiobookListTile extends StatelessWidget {
 
   late final AudiobookResumeLocation? resumeLocation;
   late final String? audiobookLocalImagePath;
-  final _log = Logger();
+
+  @override
+  State<AudiobookListTile> createState() => _AudiobookListTileState();
+}
+
+class _AudiobookListTileState extends State<AudiobookListTile> {
+  late final AudiobookViewModel viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    viewModel = AudiobookViewModel(
+      audiobooksRepository: getIt(),
+      id: widget.audiobookUiState.audiobook.id,
+    );
+  }
+
+  @override
+  void dispose() {
+    viewModel.onDispose();
+    super.dispose();
+  }
 
   void showAudiobookBottomSheet(BuildContext context) {
     final locale = Localizations.localeOf(context);
@@ -71,14 +75,17 @@ class AudiobookListTile extends StatelessWidget {
                   spacing: Dimens.paddingVertical2XS,
                   children: [
                     Text(
-                      audiobookUiState.audiobook.name[locale.languageCode] ??
+                      widget.audiobookUiState.audiobook.name[locale
+                              .languageCode] ??
                           "",
                       style: TextTheme.of(context).titleMedium,
                       textAlign: TextAlign.center,
                     ),
-                    if (showAuthor)
+                    if (widget.showAuthor)
                       Text(
-                        audiobookUiState.author.name[locale.languageCode] ?? "",
+                        widget.audiobookUiState.author.name[locale
+                                .languageCode] ??
+                            "",
                         style: TextTheme.of(context).titleSmall,
                         textAlign: TextAlign.center,
                       ),
@@ -93,10 +100,12 @@ class AudiobookListTile extends StatelessWidget {
                 ),
                 onTap: () {
                   Navigator.pop(context);
-                  // onViewChapters();
+                  DuckRouter.of(context).navigate(
+                    to: AudiobookLocation(widget.audiobookUiState.audiobook.id),
+                  );
                 },
               ),
-              if (audiobookUiState.allDownloaded())
+              if (widget.audiobookUiState.allDownloaded())
                 ListTile(
                   leading: Icon(Icons.delete),
                   title: Text(
@@ -104,21 +113,21 @@ class AudiobookListTile extends StatelessWidget {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    onRemoveDownload();
+                    viewModel.removeDownloadCommand();
                   },
                 )
               else
                 ListTile(
                   leading: Icon(Icons.download),
                   title: Text(
-                    AppLocalizations.of(context)?.labelViewChapters ?? "",
+                    AppLocalizations.of(context)?.labelDownload ?? "",
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    onDownload();
+                    viewModel.downloadCommand();
                   },
                 ),
-              if (audiobookUiState.inLibrary)
+              if (widget.audiobookUiState.inLibrary)
                 ListTile(
                   leading: Icon(Icons.remove_circle),
                   title: Text(
@@ -126,7 +135,7 @@ class AudiobookListTile extends StatelessWidget {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    onRemoveFromLibrary();
+                    viewModel.removeFromLibraryCommand();
                   },
                 )
               else
@@ -137,7 +146,7 @@ class AudiobookListTile extends StatelessWidget {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    onAddToLibrary();
+                    viewModel.addToLibraryCommand();
                   },
                 ),
               ListTile(
@@ -145,7 +154,7 @@ class AudiobookListTile extends StatelessWidget {
                 title: Text(AppLocalizations.of(context)?.labelShare ?? ""),
                 onTap: () {
                   Navigator.pop(context);
-                  onShare();
+                  // onShare();
                 },
               ),
               ListTile(
@@ -153,7 +162,7 @@ class AudiobookListTile extends StatelessWidget {
                 title: Text(AppLocalizations.of(context)?.labelBookmarks ?? ""),
                 onTap: () {
                   Navigator.pop(context);
-                  onOpenBookmarks();
+                  // onOpenBookmarks();
                 },
               ),
               ListTile(
@@ -161,7 +170,11 @@ class AudiobookListTile extends StatelessWidget {
                 title: Text(AppLocalizations.of(context)?.labelReadBook ?? ""),
                 onTap: () {
                   Navigator.pop(context);
-                  onReadBook(context);
+                  onReadBook(
+                    context,
+                    widget.audiobookUiState,
+                    widget.showAuthor,
+                  );
                 },
               ),
             ],
@@ -169,84 +182,6 @@ class AudiobookListTile extends StatelessWidget {
         );
       },
     );
-  }
-
-  void showChapterBottomSheet(BuildContext context) {
-    final locale = Localizations.localeOf(context);
-    showModalBottomSheet(
-      isScrollControlled: true,
-      showDragHandle: true,
-      context: context,
-      builder: (context) {
-        return SafeArea(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(Dimens.bottomSheetTitlePadding),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisSize: MainAxisSize.min,
-                  spacing: Dimens.paddingVertical2XS,
-                  children: [
-                    Text(
-                      audiobookUiState.audiobook.name[locale.languageCode] ??
-                          "",
-                      style: TextTheme.of(context).titleMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                    if (showAuthor)
-                      Text(
-                        audiobookUiState.author.name[locale.languageCode] ?? "",
-                        style: TextTheme.of(context).titleSmall,
-                        textAlign: TextAlign.center,
-                      ),
-                  ],
-                ),
-              ),
-              Divider(),
-              ListView(
-                //TODO continue here to accomodate scrolling inside showModalBottomSheet
-                shrinkWrap: true,
-                children: [
-                  ...audiobookUiState.chapters.map(
-                    (c) => (ListTile(
-                      title: Text(c.name[locale.languageCode] ?? ""),
-                      onTap: () async {
-                        final chapterUrl = c.pdfUrl;
-                        final chapterUri = chapterUrl == null
-                            ? null
-                            : Uri.parse(chapterUrl);
-                        if (chapterUri != null) {
-                          if (!await launchUrl(chapterUri)) {
-                            _log.d('Could not launch $chapterUri');
-                          }
-                        }
-                      },
-                    )),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  void onReadBook(BuildContext context) async {
-    switch (audiobookUiState.audiobook.pdfUrlType) {
-      case PdfUrlType.book:
-        final bookUrl = audiobookUiState.audiobook.pdfUrl;
-        final bookUri = bookUrl == null ? null : Uri.parse(bookUrl);
-        if (bookUri != null) {
-          if (!await launchUrl(bookUri)) {
-            _log.d('Could not launch $bookUri');
-          }
-        }
-      case PdfUrlType.chapter:
-        showChapterBottomSheet(context);
-    }
   }
 
   @override
@@ -256,7 +191,11 @@ class AudiobookListTile extends StatelessWidget {
     return Material(
       child: InkWell(
         // Tappable area with event handlers
-        // onTap: onTap, // Tap event handler
+        onTap: () {
+          DuckRouter.of(context).navigate(
+            to: AudiobookLocation(widget.audiobookUiState.audiobook.id),
+          );
+        },
         onLongPress: () => (showAudiobookBottomSheet(context)),
         child: Padding(
           padding: const EdgeInsets.symmetric(
@@ -270,12 +209,20 @@ class AudiobookListTile extends StatelessWidget {
                   right: Dimens.paddingHorizontalXS,
                 ),
                 child: VisibilityDetectorImage(
-                  keyString: keyString,
-                  localImagePath: audiobookLocalImagePath,
+                  keyString: widget.keyString,
+                  localImagePath: widget.audiobookLocalImagePath,
                   width: Dimens.audiobookListPhotoWidth,
                   height: Dimens.audiobookListPhotoHeight,
-                  onVisible: onVisible,
-                  onHidden: onHidden,
+                  onVisible: () {
+                    viewModel.startDownloadAudiobookImage(
+                      widget.audiobookUiState.audiobook.id,
+                    );
+                  },
+                  onHidden: () {
+                    viewModel.cancelDownloadAudiobookImage(
+                      widget.audiobookUiState.audiobook.id,
+                    );
+                  },
                 ),
               ),
               Expanded(
@@ -284,7 +231,8 @@ class AudiobookListTile extends StatelessWidget {
                       CrossAxisAlignment.start, // Align text left
                   children: [
                     Text(
-                      audiobookUiState.audiobook.name[locale.languageCode] ??
+                      widget.audiobookUiState.audiobook.name[locale
+                              .languageCode] ??
                           "",
                       style: TextTheme.of(context).bodyMedium,
                       maxLines: 1,
@@ -294,7 +242,7 @@ class AudiobookListTile extends StatelessWidget {
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
-                        (resumeLocation != null)
+                        (widget.resumeLocation != null)
                             ? Padding(
                                 padding: const EdgeInsets.only(
                                   right: Dimens.paddingHorizontal2XS,
@@ -303,10 +251,13 @@ class AudiobookListTile extends StatelessWidget {
                                   width: Dimens.audiobookListItemProgressWidth,
                                   child: LinearProgressIndicator(
                                     value:
-                                        audiobookUiState
-                                            .leftDuration()
-                                            .inSeconds /
-                                        audiobookUiState
+                                        (widget.audiobookUiState
+                                                .totalDuration()
+                                                .inSeconds -
+                                            widget.audiobookUiState
+                                                .leftDuration()
+                                                .inSeconds) /
+                                        widget.audiobookUiState
                                             .totalDuration()
                                             .inSeconds,
                                   ),
@@ -314,12 +265,14 @@ class AudiobookListTile extends StatelessWidget {
                               )
                             : Container(),
                         Text(
-                          ((resumeLocation != null)
+                          ((widget.resumeLocation != null)
                                   ? AppLocalizations.of(
                                       context,
                                     )?.labelAudiobookDurationLeft(
-                                      audiobookUiState.leftDuration().inHours,
-                                      audiobookUiState
+                                      widget.audiobookUiState
+                                          .leftDuration()
+                                          .inHours,
+                                      widget.audiobookUiState
                                               .leftDuration()
                                               .inMinutes %
                                           60,
@@ -327,8 +280,10 @@ class AudiobookListTile extends StatelessWidget {
                                   : AppLocalizations.of(
                                       context,
                                     )?.labelAudiobookDuration(
-                                      audiobookUiState.totalDuration().inHours,
-                                      audiobookUiState
+                                      widget.audiobookUiState
+                                          .totalDuration()
+                                          .inHours,
+                                      widget.audiobookUiState
                                               .totalDuration()
                                               .inMinutes %
                                           60,
@@ -337,7 +292,7 @@ class AudiobookListTile extends StatelessWidget {
                         ),
                       ],
                     ),
-                    if (audiobookUiState.allDownloaded()) ...[
+                    if (widget.audiobookUiState.allDownloaded()) ...[
                       SizedBox(height: Dimens.paddingVertical2XS),
                       Icon(Icons.download_done),
                     ] else
@@ -352,11 +307,17 @@ class AudiobookListTile extends StatelessWidget {
                   IconButton(
                     iconSize: Dimens.audiobookListItemIconSize,
                     icon: Icon(
-                      audiobookUiState.isPlaying
+                      widget.audiobookUiState.isPlaying
                           ? Icons.pause_circle_outline
                           : Icons.play_circle_outline,
                     ),
-                    onPressed: () {},
+                    onPressed: () {
+                      if (widget.audiobookUiState.isPlaying) {
+                        viewModel.pauseCommand();
+                      } else {
+                        viewModel.playCommand();
+                      }
+                    },
                   ),
                   IconButton(
                     iconSize: Dimens.audiobookListItemIconSize,
@@ -370,5 +331,96 @@ class AudiobookListTile extends StatelessWidget {
         ),
       ),
     );
+  }
+}
+
+void showChapterBottomSheet(
+  BuildContext context,
+  AudiobookUiState audiobookUiState,
+  bool showAuthor,
+) {
+  final log = Logger();
+  final locale = Localizations.localeOf(context);
+  final screenHeight = MediaQuery.sizeOf(context).height;
+
+  showModalBottomSheet(
+    isScrollControlled: true,
+    showDragHandle: true,
+    context: context,
+    builder: (context) {
+      return SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(Dimens.bottomSheetTitlePadding),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                mainAxisSize: MainAxisSize.min,
+                spacing: Dimens.paddingVertical2XS,
+                children: [
+                  Text(
+                    audiobookUiState.audiobook.name[locale.languageCode] ?? "",
+                    style: TextTheme.of(context).titleMedium,
+                    textAlign: TextAlign.center,
+                  ),
+                  if (showAuthor)
+                    Text(
+                      audiobookUiState.author.name[locale.languageCode] ?? "",
+                      style: TextTheme.of(context).titleSmall,
+                      textAlign: TextAlign.center,
+                    ),
+                ],
+              ),
+            ),
+            Divider(),
+            ConstrainedBox(
+              constraints: BoxConstraints(maxHeight: screenHeight / 1.8),
+              child: ListView(
+                shrinkWrap: true,
+                children: [
+                  ...audiobookUiState.chapters.map(
+                    (c) => (ListTile(
+                      title: Text(c.name[locale.languageCode] ?? ""),
+                      onTap: () async {
+                        final chapterUrl = c.pdfUrl;
+                        final chapterUri = chapterUrl == null
+                            ? null
+                            : Uri.parse(chapterUrl);
+                        if (chapterUri != null) {
+                          if (!await launchUrl(chapterUri)) {
+                            log.d('Could not launch $chapterUri');
+                          }
+                        }
+                      },
+                    )),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      );
+    },
+  );
+}
+
+void onReadBook(
+  BuildContext context,
+  AudiobookUiState audiobookUiState,
+  bool showAuthor,
+) async {
+  final log = Logger();
+  switch (audiobookUiState.audiobook.pdfUrlType) {
+    case PdfUrlType.book:
+      final bookUrl = audiobookUiState.audiobook.pdfUrl;
+      final bookUri = bookUrl == null ? null : Uri.parse(bookUrl);
+      if (bookUri != null) {
+        if (!await launchUrl(bookUri)) {
+          log.d('Could not launch $bookUri');
+        }
+      }
+    case PdfUrlType.chapter:
+      showChapterBottomSheet(context, audiobookUiState, showAuthor);
   }
 }

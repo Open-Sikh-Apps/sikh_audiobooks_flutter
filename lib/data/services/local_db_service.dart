@@ -111,17 +111,13 @@ class LocalDbService extends Disposable {
     }
   }
 
-  Future<Result<Audiobook?>> getAudiobookById(String id) async {
-    try {
-      final record = await _audiobooksStore.record(id).get(_db);
-      if (record == null) {
-        return Result.ok(null);
-      } else {
-        return Result.ok(Audiobook.fromJson(record));
+  Stream<Author?> getAuthorByAudiobookIdStream(String audiobookId) {
+    return getAudiobookByIdStream(audiobookId).flatMap((audiobook) {
+      if (audiobook == null) {
+        return Stream.value(null);
       }
-    } catch (e) {
-      return Result.error(e);
-    }
+      return getAuthorByIdStream(audiobook.authorId);
+    });
   }
 
   FutureOr<void> _authorOnChanges(
@@ -174,6 +170,29 @@ class LocalDbService extends Disposable {
     }
   }
   // Audiobook
+
+  Future<Result<Audiobook?>> getAudiobookById(String id) async {
+    try {
+      final record = await _audiobooksStore.record(id).get(_db);
+      if (record == null) {
+        return Result.ok(null);
+      } else {
+        return Result.ok(Audiobook.fromJson(record));
+      }
+    } catch (e) {
+      return Result.error(e);
+    }
+  }
+
+  Stream<Audiobook?> getAudiobookByIdStream(String id) {
+    return _audiobooksStore.record(id).onSnapshot(_db).map((snapshot) {
+      if (snapshot == null) {
+        return null;
+      } else {
+        return Audiobook.fromJson(snapshot.value);
+      }
+    });
+  }
 
   Future<Result<void>> saveAudiobook(Audiobook audiobook) async {
     try {
@@ -314,6 +333,22 @@ class LocalDbService extends Disposable {
     } catch (e) {
       return Result.error(e);
     }
+  }
+
+  Stream<List<Chapter>> getChaptersByAudiobookIdStream(String audiobookId) {
+    final query = _chaptersStore.query(
+      finder: Finder(
+        filter: Filter.equals(_chapterAudioBookIdKey, audiobookId),
+        sortOrders: [SortOrder(_chapterAudioBookOrderKey)],
+      ),
+    );
+    return query
+        .onSnapshots(_db)
+        .map(
+          (snapshots) => (snapshots
+              .map((snapshot) => (Chapter.fromJson(snapshot.value)))
+              .toList()),
+        );
   }
 
   Stream<List<Chapter>> getChaptersByAudiobookIdsStream(
@@ -487,6 +522,15 @@ class LocalDbService extends Disposable {
     }
   }
 
+  Stream<bool> getInLibraryByAudiobookIdStream(String audiobookId) {
+    return _inLibraryStore.record(audiobookId).onSnapshot(_db).map((snapshot) {
+      if (snapshot == null) {
+        return false;
+      }
+      return true;
+    });
+  }
+
   Stream<List<String>> getInLibraryByAudiobookIdsStream(
     List<String> audiobookIds,
   ) {
@@ -508,6 +552,20 @@ class LocalDbService extends Disposable {
         audiobookIds.map((a) => (a.id)).toList(),
       )),
     );
+  }
+
+  Stream<AudiobookResumeLocation?>
+  getAudiobookResumeLocationByAudiobookIdStream(String audiobookId) {
+    return _audiobookResumeLocationsStore
+        .record(audiobookId)
+        .onSnapshot(_db)
+        .map((snapshot) {
+          if (snapshot == null) {
+            return null;
+          } else {
+            return AudiobookResumeLocation.fromJson(snapshot.value);
+          }
+        });
   }
 
   Stream<List<AudiobookResumeLocation>>

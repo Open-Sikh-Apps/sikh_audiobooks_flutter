@@ -151,5 +151,13 @@
   "labelAuthor": "Author",
   "@labelAuthor": {
     "description": "Label for Author"
+  },
+  "labelNoAudiobooksFound": "No Audiobooks found. Try adjusting filters.",
+  "@labelNoAudiobooksFound": {
+    "description": "Label for no audiboooks found."
+  },
+  "labelChapters": "Chapters",
+  "@labelChapters": {
+    "description": "Label for Chapters"
   }
 }

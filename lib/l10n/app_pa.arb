@@ -32,5 +32,7 @@
   "labelRemoveFromLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚੋਂ ਹਟਾਓ",
   "labelBookmarks": "ਬੁੱਕਮਾਰਕਸ",
   "labelReadBook": "ਕਿਤਾਬ ਪੜ੍ਹੋ",
-  "labelAuthor": "ਲੇਖਕ"
+  "labelAuthor": "ਲੇਖਕ",
+  "labelNoAudiobooksFound": "ਕੋਈ ਆਡੀਓ ਕਿਤਾਬਾਂ ਨਹੀਂ ਮਿਲੀਆਂ। ਫਿਲਟਰਾਂ ਨੂੰ ਐਡਜਸਟ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
+  "labelChapters": "ਅਧਿਆਏ"
 }

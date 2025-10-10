@@ -9,6 +9,8 @@ abstract final class Dimens {
 
   /// General horizontal padding used to separate UI items
   static const paddingHorizontal = 20.0;
+  static const paddingHorizontalMedium = 16.0;
+
   static const paddingHorizontalSmall = 12.0;
   static const paddingHorizontalXS = 8.0;
   static const paddingHorizontal2XS = 4.0;
@@ -25,6 +27,7 @@ abstract final class Dimens {
   static const paddingVerticalSmall = 12.0;
   static const paddingVerticalXS = 8.0;
   static const paddingVertical2XS = 4.0;
+  static const paddingVertical3XS = 2.0;
 
   ///Header divider thicknes
   static const headerDividerThickness = 2.0;
@@ -35,11 +38,30 @@ abstract final class Dimens {
   ///Error Indicator Icon Title padding
   static const errorIndicationIconTitlePadding = 8.0;
 
+  static const emptyIndicationIconTitlePadding = 12.0;
+
   /// Author grid photo size
   static const authorGridPhotoSize = 140.0;
 
   /// Author screen photo size
   static const authorScreenPhotoSize = 100.0;
+
+  /// Author screen author info size
+  static const authorScreenInfoHeight = 164.0;
+
+  static const authorScreenFilterBarHeight = 116.0;
+
+  /// Audiobook screen author photo size
+  static const audiobookScreenAuthorPhotoSize = 30.0;
+
+  /// Audiobook screen photo size
+  static const audiobookScreenPhotoWidth = 93.33;
+  static const audiobookScreenPhotoHeight = 140.0;
+  static const audiobookScreenProgressWidth = 40.0;
+
+  static const audiobookScreenInfoHeight = 216.0;
+  static const audiobookScreenChapterLabelHeight = 54.0;
+  static const appBarLeadingWidth = 56.0;
 
   /// Author item inside spacing
   static const authorItemInsideSpacing = 4.0;
@@ -48,6 +70,7 @@ abstract final class Dimens {
   static const betweenAuthorItemsSpacing = 24.0;
 
   static const authorScreenPhotoSpacing = 20.0;
+  static const audiobookScreenPhotoSpacing = 20.0;
 
   static const chipSpacing = 12.0;
   static const audiobookListPhotoWidth = 60.0;

@@ -1,9 +1,12 @@
+import 'dart:async';
+
 import 'package:command_it/command_it.dart';
 import 'package:flutter/material.dart';
+import 'package:get_it/get_it.dart';
 import 'package:sikh_audiobooks_flutter/data/repositories/user_settings/user_settings_repository.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
 
-class SettingsViewmodel {
+class SettingsViewmodel extends Disposable {
   SettingsViewmodel({required UserSettingsRepository userSettingsRepository})
     : _userSettingsRepository = userSettingsRepository;
   final UserSettingsRepository _userSettingsRepository;
@@ -28,4 +31,7 @@ class SettingsViewmodel {
         );
         return saveResult;
       }, initialValue: null);
+
+  @override
+  FutureOr onDispose() async {}
 }

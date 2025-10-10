@@ -79,12 +79,12 @@ class AuthorViewModel extends Disposable {
             _allAudiobookUiStatesResultVN.value = Result.ok(data);
           },
           onError: (error) {
-            _log.d("combine4 onError", error: error);
+            _log.d("combine5 onError", error: error);
             _allAudiobookUiStatesResultVN.value = Result.error(error);
           },
         )
         .addTo(_compositeSubscription);
-    _filteredAudiobookUiStatesResultVN = _allAudiobookUiStatesResultVN
+    _filteredAudiobookUiStatesResultVL = _allAudiobookUiStatesResultVN
         .combineLatest5(
           _audiobookLanguageVN,
           _audiobookFilterVN,
@@ -164,10 +164,10 @@ class AuthorViewModel extends Disposable {
   _allAudiobookUiStatesResultVN = ValueNotifier(null);
 
   late final ValueListenable<Result<List<AudiobookUiState>>?>
-  _filteredAudiobookUiStatesResultVN;
+  _filteredAudiobookUiStatesResultVL;
 
   ValueListenable<Result<List<AudiobookUiState>>?>
-  get filteredAudiobookUiStatesResultVN => _filteredAudiobookUiStatesResultVN;
+  get filteredAudiobookUiStatesResultVL => _filteredAudiobookUiStatesResultVL;
 
   final AudiobooksRepository _audiobooksRepository;
   final String _id;
@@ -210,13 +210,13 @@ class AuthorViewModel extends Disposable {
 
   @override
   FutureOr onDispose() async {
+    await _compositeSubscription.dispose();
+
     _authorResultVN.dispose();
     _audiobookLanguageVN.dispose();
     _audiobookFilterVN.dispose();
     _audiobookAuthorSortVN.dispose();
     _currentLocaleVN.dispose();
     _allAudiobookUiStatesResultVN.dispose();
-
-    await _compositeSubscription.dispose();
   }
 }

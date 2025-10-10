@@ -27,18 +27,30 @@ abstract class AudiobooksRepository extends Disposable {
   /// - downloads any author images, if missing or obsolete
   // Future<List<Author>> fetchAuthorList();
   Command<void, Result<void>?> get refreshDataCommand;
-  Stream<List<Author>> getAllAuthorsStream();
+
   Future<void> startDownloadAuthorImage(String authorId);
   Future<void> cancelDownloadAuthorImage(String authorId);
-  Stream<Author?> getAuthorByIdStream(String id);
-  Stream<List<Audiobook>> getAudiobooksByAuthorIdStream(String authorId);
 
   Future<void> startDownloadAudiobookImage(String audiobookId);
   Future<void> cancelDownloadAudiobookImage(String audiobookId);
+
+  Stream<List<Author>> getAllAuthorsStream();
+  Stream<Author?> getAuthorByIdStream(String id);
+  Stream<Author?> getAuthorByAudiobookIdStream(String audiobookId);
+
+  Stream<Audiobook?> getAudiobookByIdStream(String id);
+  Stream<List<Audiobook>> getAudiobooksByAuthorIdStream(String authorId);
+
+  Stream<List<Chapter>> getChaptersByAudiobookIdStream(String audiobookId);
   Stream<List<Chapter>> getChaptersByAuthorIdStream(String authorId);
+
+  Stream<bool> getInLibraryByAudiobookIdStream(String audiobookId);
   Stream<List<String>> getInLibraryAudiobookIdsByAuthorIdStream(
     String authorId,
   );
+
+  Stream<AudiobookResumeLocation?>
+  getAudiobookResumeLocationByAudiobookIdStream(String audiobookId);
   Stream<List<AudiobookResumeLocation>>
   getAudiobookResumeLocationsByAuthorIdStream(String authorId);
 
@@ -557,6 +569,7 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
       await downloadTaskEntry.value.cancel();
       _imageDownloadTasksMap.remove(downloadTaskEntry.key);
     }
+    _refreshDataCommand.dispose();
   }
 
   @override
@@ -577,5 +590,33 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
     String authorId,
   ) {
     return _localDbService.getInLibraryAudiobookIdsByAuthorIdStream(authorId);
+  }
+
+  @override
+  Stream<Audiobook?> getAudiobookByIdStream(String id) {
+    return _localDbService.getAudiobookByIdStream(id);
+  }
+
+  @override
+  Stream<AudiobookResumeLocation?>
+  getAudiobookResumeLocationByAudiobookIdStream(String audiobookId) {
+    return _localDbService.getAudiobookResumeLocationByAudiobookIdStream(
+      audiobookId,
+    );
+  }
+
+  @override
+  Stream<Author?> getAuthorByAudiobookIdStream(String audiobookId) {
+    return _localDbService.getAuthorByAudiobookIdStream(audiobookId);
+  }
+
+  @override
+  Stream<List<Chapter>> getChaptersByAudiobookIdStream(String audiobookId) {
+    return _localDbService.getChaptersByAudiobookIdStream(audiobookId);
+  }
+
+  @override
+  Stream<bool> getInLibraryByAudiobookIdStream(String audiobookId) {
+    return _localDbService.getInLibraryByAudiobookIdStream(audiobookId);
   }
 }

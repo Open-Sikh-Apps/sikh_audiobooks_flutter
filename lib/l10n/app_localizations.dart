@@ -295,6 +295,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Author'**
   String get labelAuthor;
+
+  /// Label for no audiboooks found.
+  ///
+  /// In en, this message translates to:
+  /// **'No Audiobooks found. Try adjusting filters.'**
+  String get labelNoAudiobooksFound;
+
+  /// Label for Chapters
+  ///
+  /// In en, this message translates to:
+  /// **'Chapters'**
+  String get labelChapters;
 }
 
 class _AppLocalizationsDelegate

@@ -20,4 +20,17 @@ extension ApiDurationExtensions on ApiDuration {
       seconds: seconds ?? 0,
     );
   }
+
+  String toDurationString() {
+    final hoursString = (hours != null)
+        ? "${hours.toString().padLeft(2, "0")}:"
+        : null;
+    final minutesString =
+        "${(minutes != null) ? minutes.toString().padLeft(2, "0") : "00"}:";
+    final secondsString = (seconds != null)
+        ? seconds.toString().padLeft(2, "0")
+        : "00";
+
+    return "${(hoursString != null) ? hoursString : ''}$minutesString$secondsString";
+  }
 }

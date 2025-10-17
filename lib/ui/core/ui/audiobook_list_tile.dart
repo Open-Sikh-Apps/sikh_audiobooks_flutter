@@ -295,8 +295,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                     if (widget.audiobookUiState.allDownloaded()) ...[
                       SizedBox(height: Dimens.paddingVertical2XS),
                       Icon(Icons.download_done),
-                    ] else
-                      Container(),
+                    ],
                   ],
                 ),
               ),

@@ -15,23 +15,36 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await lockOrientationPortrait();
   await setupDependencies();
-  runApp(
-    MainApp(
-      mainViewModel: MainViewModel(userSettingsRepository: getIt()),
-      router: getIt(),
-    ),
-  );
+  runApp(MainApp(router: getIt()));
 }
 
-class MainApp extends WatchingWidget {
-  const MainApp({super.key, required this.mainViewModel, required this.router});
-  final MainViewModel mainViewModel;
+class MainApp extends WatchingStatefulWidget {
+  const MainApp({super.key, required this.router});
   final DuckRouter router;
+
+  @override
+  State<MainApp> createState() => _MainAppState();
+}
+
+class _MainAppState extends State<MainApp> {
+  late final MainViewModel viewModel;
+
+  @override
+  void initState() {
+    super.initState();
+    viewModel = MainViewModel(userSettingsRepository: getIt());
+  }
+
+  @override
+  void dispose() {
+    viewModel.onDispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final fetchUserSettingsResults = watch(
-      mainViewModel.fetchSettingsCommand.results,
+      viewModel.fetchSettingsCommand.results,
     ).value;
 
     return fetchUserSettingsResults.toWidget(
@@ -44,7 +57,7 @@ class MainApp extends WatchingWidget {
         if (result is Error) {
           return ErrorHome();
         } else {
-          return RouterHome(mainViewModel: mainViewModel, router: router);
+          return RouterHome(mainViewModel: viewModel, router: widget.router);
         }
       },
     );

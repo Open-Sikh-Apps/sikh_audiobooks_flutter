@@ -7,6 +7,7 @@ import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sikh_audiobooks_flutter/data/repositories/audiobooks/audiobooks_repository.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui_state/audiobook_ui_state/audiobook_ui_state.dart';
+import 'package:sikh_audiobooks_flutter/ui/core/ui_state/chapter_ui_state/chapter_ui_state.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
 
 class AudiobookViewModel extends Disposable {
@@ -40,10 +41,22 @@ class AudiobookViewModel extends Disposable {
         .listen(
           (data) {
             _audiobookUiStateResultVN.value = Result.ok(data);
+            _chapterUiStateListResultVN.value = Result.ok(
+              data?.chapters
+                  .map(
+                    (c) => (ChapterUiState(
+                      chapter: c,
+                      isPlaying: false,
+                      audiobookUiState: data,
+                    )),
+                  )
+                  .toList(),
+            );
           },
           onError: (error) {
             _log.d("combine5 onError", error: error);
             _audiobookUiStateResultVN.value = Result.error(error);
+            _chapterUiStateListResultVN.value = Result.error(error);
           },
         )
         .addTo(_compositeSubscription);
@@ -59,6 +72,12 @@ class AudiobookViewModel extends Disposable {
 
   ValueNotifier<Result<AudiobookUiState?>?> get audiobookUiStateResultVN =>
       _audiobookUiStateResultVN;
+
+  final ValueNotifier<Result<List<ChapterUiState>?>?>
+  _chapterUiStateListResultVN = ValueNotifier(null);
+
+  ValueNotifier<Result<List<ChapterUiState>?>?>
+  get chapterUiStateListResultVN => _chapterUiStateListResultVN;
 
   final CompositeSubscription _compositeSubscription = CompositeSubscription();
 
@@ -136,6 +155,8 @@ class AudiobookViewModel extends Disposable {
     await _compositeSubscription.dispose();
 
     _audiobookUiStateResultVN.dispose();
+    _chapterUiStateListResultVN.dispose();
+
     _playCommand.dispose();
     _pauseCommand.dispose();
     _downloadCommand.dispose();

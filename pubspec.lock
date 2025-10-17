@@ -565,6 +565,14 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "2.0.0"
+  not_static_icons:
+    dependency: "direct main"
+    description:
+      name: not_static_icons
+      sha256: "7923cf455c148c080c706ed4c4bb6af15a095a0c9ebda27b7758997515961aa8"
+      url: "https://pub.dev"
+    source: hosted
+    version: "0.11.0"
   package_config:
     dependency: transitive
     description:

@@ -513,7 +513,8 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
                 chapter.copyWith(
                   localAudioPath:
                       (chapterFromDb != null &&
-                          chapter.audioPath == chapterFromDb.audioPath)
+                          (chapter.audioPath == chapterFromDb.audioPath ||
+                              chapter.duration == chapterFromDb.duration))
                       ? localAudioPath
                       : null,
                 ),

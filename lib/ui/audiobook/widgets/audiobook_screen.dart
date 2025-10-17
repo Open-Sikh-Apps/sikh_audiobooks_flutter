@@ -8,12 +8,14 @@ import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/main.dart';
 import 'package:sikh_audiobooks_flutter/routing/router.dart';
 import 'package:sikh_audiobooks_flutter/ui/audiobook/viewmodels/audiobook_view_model.dart';
+import 'package:sikh_audiobooks_flutter/ui/audiobook/widgets/chapter_list_tile.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/themes/dimens.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui/audiobook_list_tile.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui/error_indicator.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui/loading_indicator.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui/visibility_detector_image.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui_state/audiobook_ui_state/audiobook_ui_state.dart';
+import 'package:sikh_audiobooks_flutter/ui/core/ui_state/chapter_ui_state/chapter_ui_state.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
 import 'package:uuid/uuid.dart';
 import 'package:watch_it/watch_it.dart';
@@ -68,6 +70,10 @@ class _AudiobookScreenState extends State<AudiobookScreen> {
       viewModel.audiobookUiStateResultVN,
     ).value;
 
+    final chapterUiStateListResult = watch(
+      viewModel.chapterUiStateListResultVN,
+    ).value;
+
     final locale = Localizations.localeOf(context);
 
     return AnimatedSwitcher(
@@ -82,7 +88,8 @@ class _AudiobookScreenState extends State<AudiobookScreen> {
           if (result is Error) {
             return _getErrorIndicatorWidget(context);
           } else {
-            if (audibookUiStateResult == null) {
+            if (audibookUiStateResult == null ||
+                chapterUiStateListResult == null) {
               return LoadingIndicator();
             }
             final AudiobookUiState audiobookUiState;
@@ -96,8 +103,21 @@ class _AudiobookScreenState extends State<AudiobookScreen> {
               case Error<AudiobookUiState?>():
                 return _getErrorIndicatorWidget(context);
             }
+
             final audiobookLocalImagePath =
                 audiobookUiState.audiobook.localImagePath;
+
+            final List<ChapterUiState> chapterUiStateList;
+            switch (chapterUiStateListResult) {
+              case Ok<List<ChapterUiState>?>():
+                final result = chapterUiStateListResult.value;
+                if (result == null) {
+                  return _getErrorIndicatorWidget(context);
+                }
+                chapterUiStateList = result;
+              case Error<List<ChapterUiState>?>():
+                return _getErrorIndicatorWidget(context);
+            }
 
             return Scaffold(
               body: NotificationListener<ScrollNotification>(
@@ -116,6 +136,7 @@ class _AudiobookScreenState extends State<AudiobookScreen> {
                   controller: _mainScrollController,
                   slivers: [
                     SliverAppBar(
+                      pinned: true,
                       primary: true,
                       expandedHeight:
                           Dimens.audiobookScreenInfoHeight +
@@ -418,9 +439,11 @@ class _AudiobookScreenState extends State<AudiobookScreen> {
                       ),
                     ),
                     SliverList.builder(
-                      itemCount: audiobookUiState.chapters.length,
+                      itemCount: chapterUiStateList.length,
                       itemBuilder: (context, index) {
-                        return null;
+                        return ChapterListTile(
+                          chapterUiState: chapterUiStateList[index],
+                        );
                       },
                     ),
                   ],

@@ -81,6 +81,12 @@ abstract final class Dimens {
   static const audiobookListItemProgressWidth = 60.0;
   static const audiobookListItemIconSize = 40.0;
 
+  static const chapterListItemPaddingHorizontal = 16.0;
+  static const chapterListItemPaddingVertical = 8.0;
+
+  static const chapterListItemPlayingIconSize = 12.0;
+  static const chapterListItemIconSize = 40.0;
+
   /// Horizontal padding for screen edges
   double get paddingScreenHorizontal;
 

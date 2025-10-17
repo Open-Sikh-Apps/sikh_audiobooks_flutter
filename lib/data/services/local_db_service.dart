@@ -406,7 +406,8 @@ class LocalDbService extends Disposable {
 
             // When chapter audioPath is modified, reset the timeLocation to zero for any audiobook resume location with this chapter id
 
-            if (oldChapter.audioPath != newChapter.audioPath) {
+            if ((oldChapter.audioPath != newChapter.audioPath) &&
+                (oldChapter.duration != newChapter.duration)) {
               _log.d(
                 "audioPath updated: ${newChapter.audioPath}\n udpating its audiobookResumeLocations locationInSeconds to 0",
               );

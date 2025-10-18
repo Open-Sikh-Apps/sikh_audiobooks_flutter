@@ -119,16 +119,14 @@ class AudiobookViewModel extends Disposable {
 
   late final Command<void, Result<void>?> _addToLibraryCommand =
       Command.createAsyncNoParam(() async {
-        //
-        return Result.ok(null);
+        return await _audiobooksRepository.addAudiobookToLibrary(_id);
       }, initialValue: null);
 
   Command<void, Result<void>?> get addToLibraryCommand => _addToLibraryCommand;
 
   late final Command<void, Result<void>?> _removeFromLibraryCommand =
       Command.createAsyncNoParam(() async {
-        //
-        return Result.ok(null);
+        return await _audiobooksRepository.removeAudiobookFromLibrary(_id);
       }, initialValue: null);
 
   Command<void, Result<void>?> get removeFromLibraryCommand =>

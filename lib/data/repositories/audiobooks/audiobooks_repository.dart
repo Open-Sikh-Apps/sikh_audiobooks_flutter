@@ -44,6 +44,9 @@ abstract class AudiobooksRepository extends Disposable {
   Stream<List<Chapter>> getChaptersByAudiobookIdStream(String audiobookId);
   Stream<List<Chapter>> getChaptersByAuthorIdStream(String authorId);
 
+  Future<Result<void>> addAudiobookToLibrary(String audiobookId);
+  Future<Result<void>> removeAudiobookFromLibrary(String audiobookId);
+
   Stream<bool> getInLibraryByAudiobookIdStream(String audiobookId);
   Stream<List<String>> getInLibraryAudiobookIdsByAuthorIdStream(
     String authorId,
@@ -54,14 +57,11 @@ abstract class AudiobooksRepository extends Disposable {
   Stream<List<AudiobookResumeLocation>>
   getAudiobookResumeLocationsByAuthorIdStream(String authorId);
 
-  // Stream<List<Chapter>> getChaptersByAudiobookIdsStream(
-  //   List<String> audiobookIds,
-  // );
-  // Stream<List<String>> getInLibraryByAudiobookIdsStream(
-  //   List<String> audiobookIds,
-  // );
-  // Stream<List<AudiobookResumeLocation>>
-  // getAudiobookResumeLocationsByAudiobookIdsStream(List<String> audiobookIds);
+  Stream<List<Audiobook>> getInLibraryAudiobooksStream();
+  Stream<List<Author>> getInLibraryAuthorsStream();
+  Stream<List<AudiobookResumeLocation>>
+  getInLibraryAudiobookResumeLocationsStream();
+  Stream<List<Chapter>> getInLibraryChaptersStream();
 }
 
 class AudiobooksRepositoryProd extends AudiobooksRepository {
@@ -619,5 +619,36 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   @override
   Stream<bool> getInLibraryByAudiobookIdStream(String audiobookId) {
     return _localDbService.getInLibraryByAudiobookIdStream(audiobookId);
+  }
+
+  @override
+  Future<Result<void>> addAudiobookToLibrary(String audiobookId) {
+    return _localDbService.addAudiobookToLibrary(audiobookId);
+  }
+
+  @override
+  Future<Result<void>> removeAudiobookFromLibrary(String audiobookId) {
+    return _localDbService.removeAudiobookFromLibrary(audiobookId);
+  }
+
+  @override
+  Stream<List<AudiobookResumeLocation>>
+  getInLibraryAudiobookResumeLocationsStream() {
+    return _localDbService.getInLibraryAudiobookResumeLocationsStream();
+  }
+
+  @override
+  Stream<List<Audiobook>> getInLibraryAudiobooksStream() {
+    return _localDbService.getInLibraryAudiobooksStream();
+  }
+
+  @override
+  Stream<List<Author>> getInLibraryAuthorsStream() {
+    return _localDbService.getInLibraryAuthorsStream();
+  }
+
+  @override
+  Stream<List<Chapter>> getInLibraryChaptersStream() {
+    return _localDbService.getInLibraryChaptersStream();
   }
 }

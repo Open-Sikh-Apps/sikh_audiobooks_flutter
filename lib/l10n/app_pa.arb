@@ -34,5 +34,10 @@
   "labelReadBook": "ਕਿਤਾਬ ਪੜ੍ਹੋ",
   "labelAuthor": "ਲੇਖਕ",
   "labelNoAudiobooksFound": "ਕੋਈ ਆਡੀਓ ਕਿਤਾਬਾਂ ਨਹੀਂ ਮਿਲੀਆਂ। ਫਿਲਟਰਾਂ ਨੂੰ ਐਡਜਸਟ ਕਰਨ ਦੀ ਕੋਸ਼ਿਸ਼ ਕਰੋ।",
-  "labelChapters": "ਅਧਿਆਏ"
+  "labelChapters": "ਅਧਿਆਏ",
+  "messageAddedToLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚ ਜੋੜਿਆ ਗਿਆ",
+  "messageErrorAddingToLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚ ਜੋੜਨ ਵਿੱਚ ਗੜਬੜ ਹੋਈ",
+  "messageRemovedFromLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਤੋਂ ਹਟਾਇਆ ਗਿਆ",
+  "messageErrorRemovingFromLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚੋਂ ਹਟਾਉਣ ਵੇਲੇ ਗੜਬੜ ਹੋਈ",
+  "messageLibraryEmpty": "ਲਾਇਬ੍ਰੇਰੀ ਖਾਲੀ ਹੈ।"
 }

@@ -14,4 +14,5 @@ abstract final class Constants {
   static const animatedSwitcherDuration = Duration(milliseconds: 500);
   static const autoScrollDuration = Duration(milliseconds: 500);
   static const titleSeparaterSelectActionChip = ": ";
+  static const defaultSnackbarDuration = Duration(milliseconds: 2500);
 }

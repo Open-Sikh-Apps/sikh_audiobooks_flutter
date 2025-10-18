@@ -307,6 +307,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Chapters'**
   String get labelChapters;
+
+  /// Message Added To Library
+  ///
+  /// In en, this message translates to:
+  /// **'Added to library'**
+  String get messageAddedToLibrary;
+
+  /// Message Error Adding To Libary
+  ///
+  /// In en, this message translates to:
+  /// **'Error adding to library'**
+  String get messageErrorAddingToLibrary;
+
+  /// Message Removed From Library
+  ///
+  /// In en, this message translates to:
+  /// **'Removed from library'**
+  String get messageRemovedFromLibrary;
+
+  /// Message Error Removing From Library
+  ///
+  /// In en, this message translates to:
+  /// **'Error removing from library'**
+  String get messageErrorRemovingFromLibrary;
+
+  /// Message Library Empty
+  ///
+  /// In en, this message translates to:
+  /// **'Library is empty.'**
+  String get messageLibraryEmpty;
 }
 
 class _AppLocalizationsDelegate

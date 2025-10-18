@@ -117,4 +117,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get labelChapters => 'Chapters';
+
+  @override
+  String get messageAddedToLibrary => 'Added to library';
+
+  @override
+  String get messageErrorAddingToLibrary => 'Error adding to library';
+
+  @override
+  String get messageRemovedFromLibrary => 'Removed from library';
+
+  @override
+  String get messageErrorRemovingFromLibrary => 'Error removing from library';
+
+  @override
+  String get messageLibraryEmpty => 'Library is empty.';
 }

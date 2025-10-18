@@ -117,4 +117,20 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get labelChapters => 'ਅਧਿਆਏ';
+
+  @override
+  String get messageAddedToLibrary => 'ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚ ਜੋੜਿਆ ਗਿਆ';
+
+  @override
+  String get messageErrorAddingToLibrary => 'ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚ ਜੋੜਨ ਵਿੱਚ ਗੜਬੜ ਹੋਈ';
+
+  @override
+  String get messageRemovedFromLibrary => 'ਲਾਇਬ੍ਰੇਰੀ ਤੋਂ ਹਟਾਇਆ ਗਿਆ';
+
+  @override
+  String get messageErrorRemovingFromLibrary =>
+      'ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚੋਂ ਹਟਾਉਣ ਵੇਲੇ ਗੜਬੜ ਹੋਈ';
+
+  @override
+  String get messageLibraryEmpty => 'ਲਾਇਬ੍ਰੇਰੀ ਖਾਲੀ ਹੈ।';
 }

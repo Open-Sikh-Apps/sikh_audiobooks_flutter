@@ -17,6 +17,7 @@ import 'package:sikh_audiobooks_flutter/ui/core/ui/visibility_detector_image.dar
 import 'package:sikh_audiobooks_flutter/ui/core/ui_state/audiobook_ui_state/audiobook_ui_state.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui_state/chapter_ui_state/chapter_ui_state.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
+import 'package:sikh_audiobooks_flutter/utils/utils.dart';
 import 'package:uuid/uuid.dart';
 import 'package:watch_it/watch_it.dart';
 
@@ -29,7 +30,7 @@ class AudiobookScreen extends WatchingStatefulWidget {
 }
 
 class _AudiobookScreenState extends State<AudiobookScreen> {
-  late final AudiobookViewModel viewModel;
+  late AudiobookViewModel viewModel;
   bool _appBarCollapsed = false;
   final uuid = Uuid().v1();
   final ScrollController _mainScrollController = ScrollController();
@@ -54,6 +55,18 @@ class _AudiobookScreenState extends State<AudiobookScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant AudiobookScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id) {
+      viewModel.onDispose();
+      viewModel = AudiobookViewModel(
+        audiobooksRepository: getIt(),
+        id: widget.id,
+      );
+    }
+  }
+
+  @override
   void dispose() {
     _mainScrollController.dispose();
     viewModel.onDispose();
@@ -62,6 +75,62 @@ class _AudiobookScreenState extends State<AudiobookScreen> {
 
   @override
   Widget build(BuildContext context) {
+    registerHandler(
+      target: viewModel.addToLibraryCommand.results,
+      handler: (context, CommandResult<void, Result<void>?> value, _) {
+        final resultError = value.error;
+        final resultData = value.data;
+
+        final errorMessage =
+            AppLocalizations.of(context)?.messageErrorAddingToLibrary ?? "";
+
+        final successMessage =
+            AppLocalizations.of(context)?.messageAddedToLibrary ?? "";
+
+        if (resultError != null) {
+          showSnackbar(context, errorMessage);
+          return;
+        }
+        if (resultData != null) {
+          switch (resultData) {
+            case Ok<void>():
+              showSnackbar(context, successMessage);
+            case Error<void>():
+              showSnackbar(context, errorMessage);
+          }
+          return;
+        }
+      },
+    );
+
+    registerHandler(
+      target: viewModel.removeFromLibraryCommand.results,
+      handler: (context, CommandResult<void, Result<void>?> value, _) {
+        final resultError = value.error;
+        final resultData = value.data;
+
+        final errorMessage =
+            AppLocalizations.of(context)?.messageErrorRemovingFromLibrary ?? "";
+
+        final successMessage =
+            AppLocalizations.of(context)?.messageRemovedFromLibrary ?? "";
+
+        if (resultError != null) {
+          showSnackbar(context, errorMessage);
+          return;
+        }
+        if (resultData != null) {
+          switch (resultData) {
+            case Ok<void>():
+              showSnackbar(context, successMessage);
+            case Error<void>():
+              showSnackbar(context, errorMessage);
+          }
+          return;
+        }
+      },
+    );
+
     final refreshDataCommandResults = watch(
       viewModel.refreshDataCommand.results,
     ).value;

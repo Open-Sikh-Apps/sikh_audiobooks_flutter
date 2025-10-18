@@ -53,6 +53,15 @@ class _AuthorScreenState extends State<AuthorScreen> {
   }
 
   @override
+  void didUpdateWidget(covariant AuthorScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.id != widget.id) {
+      viewModel.onDispose();
+      viewModel = AuthorViewModel(audiobooksRepository: getIt(), id: widget.id);
+    }
+  }
+
+  @override
   void dispose() {
     _mainScrollController.dispose();
     viewModel.onDispose();
@@ -71,7 +80,8 @@ class _AuthorScreenState extends State<AuthorScreen> {
 
   @override
   Widget build(BuildContext context) {
-    viewModel.notifyCurrentLocale(Localizations.localeOf(context));
+    final locale = Localizations.localeOf(context);
+    viewModel.notifyCurrentLocale(locale);
 
     final refreshDataCommandResults = watch(
       viewModel.refreshDataCommand.results,
@@ -85,8 +95,6 @@ class _AuthorScreenState extends State<AuthorScreen> {
     final filteredAudiobookUiStatesResult = watch(
       viewModel.filteredAudiobookUiStatesResultVL,
     ).value;
-
-    final locale = Localizations.localeOf(context);
 
     return AnimatedSwitcher(
       duration: Constants.animatedSwitcherDuration,

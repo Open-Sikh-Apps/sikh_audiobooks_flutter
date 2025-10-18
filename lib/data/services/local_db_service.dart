@@ -120,6 +120,20 @@ class LocalDbService extends Disposable {
     });
   }
 
+  Stream<List<Author>> getAuthorsByIdsStream(List<String> authorIds) {
+    final query = _authorsStore.query(
+      finder: Finder(filter: Filter.inList(Field.key, authorIds)),
+    );
+
+    return query
+        .onSnapshots(_db)
+        .map(
+          (snapshots) => (snapshots
+              .map((snapshot) => (Author.fromJson(snapshot.value)))
+              .toList()),
+        );
+  }
+
   FutureOr<void> _authorOnChanges(
     Transaction txn,
     List<RecordChange<String, Map<String, Object?>>> changes,
@@ -234,6 +248,19 @@ class LocalDbService extends Disposable {
     } catch (e) {
       return Result.error(e);
     }
+  }
+
+  Stream<List<Audiobook>> getAudiobooksByIdsStream(List<String> audiobookIds) {
+    final query = _audiobooksStore.query(
+      finder: Finder(filter: Filter.inList(Field.key, audiobookIds)),
+    );
+    return query
+        .onSnapshots(_db)
+        .map(
+          (snapshots) => (snapshots
+              .map((snapshot) => (Audiobook.fromJson(snapshot.value)))
+              .toList()),
+        );
   }
 
   FutureOr<void> _audiobookOnChanges(
@@ -523,6 +550,24 @@ class LocalDbService extends Disposable {
     }
   }
 
+  Future<Result<void>> addAudiobookToLibrary(String audiobookId) async {
+    try {
+      await _inLibraryStore.record(audiobookId).put(_db, {"added": true});
+      return Result.ok(null);
+    } catch (e) {
+      return Result.error(e);
+    }
+  }
+
+  Future<Result<void>> removeAudiobookFromLibrary(String audiobookId) async {
+    try {
+      await _inLibraryStore.record(audiobookId).delete(_db);
+      return Result.ok(null);
+    } catch (e) {
+      return Result.error(e);
+    }
+  }
+
   Stream<bool> getInLibraryByAudiobookIdStream(String audiobookId) {
     return _inLibraryStore.record(audiobookId).onSnapshot(_db).map((snapshot) {
       if (snapshot == null) {
@@ -552,6 +597,39 @@ class LocalDbService extends Disposable {
       (audiobookIds) => (getInLibraryByAudiobookIdsStream(
         audiobookIds.map((a) => (a.id)).toList(),
       )),
+    );
+  }
+
+  Stream<List<String>> getInLibraryAudiobookIdsStream() {
+    return _inLibraryStore
+        .query()
+        .onSnapshots(_db)
+        .map((snapshots) => (snapshots.map((s) => (s.key)).toList()));
+  }
+
+  Stream<List<Audiobook>> getInLibraryAudiobooksStream() {
+    return getInLibraryAudiobookIdsStream().flatMap(
+      (audiobookIds) => (getAudiobooksByIdsStream(audiobookIds)),
+    );
+  }
+
+  Stream<List<Author>> getInLibraryAuthorsStream() {
+    return getInLibraryAudiobooksStream()
+        .map((audiobooks) => (audiobooks.map((a) => (a.authorId)).toList()))
+        .flatMap((authorIds) => (getAuthorsByIdsStream(authorIds)));
+  }
+
+  Stream<List<AudiobookResumeLocation>>
+  getInLibraryAudiobookResumeLocationsStream() {
+    return getInLibraryAudiobookIdsStream().flatMap(
+      (audiobookIds) =>
+          (getAudiobookResumeLocationsByAudiobookIdsStream(audiobookIds)),
+    );
+  }
+
+  Stream<List<Chapter>> getInLibraryChaptersStream() {
+    return getInLibraryAudiobookIdsStream().flatMap(
+      (audiobookIds) => (getChaptersByAudiobookIdsStream(audiobookIds)),
     );
   }
 
@@ -589,8 +667,8 @@ class LocalDbService extends Disposable {
   Stream<List<AudiobookResumeLocation>>
   getAudiobookResumeLocationsByAuthorIdStream(String authorId) {
     return getAudiobooksByAuthorIdStream(authorId).flatMap(
-      (audiobookIds) => (getAudiobookResumeLocationsByAudiobookIdsStream(
-        audiobookIds.map((a) => (a.id)).toList(),
+      (audiobooks) => (getAudiobookResumeLocationsByAudiobookIdsStream(
+        audiobooks.map((a) => (a.id)).toList(),
       )),
     );
   }

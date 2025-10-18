@@ -1,5 +1,6 @@
 // https://blog.stackademic.com/how-to-increase-the-height-of-listtile-in-flutter-e430dc577113
 
+import 'package:command_it/command_it.dart';
 import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
 import 'package:logger/logger.dart';
@@ -12,9 +13,12 @@ import 'package:sikh_audiobooks_flutter/ui/audiobook/viewmodels/audiobook_view_m
 import 'package:sikh_audiobooks_flutter/ui/core/themes/dimens.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui/visibility_detector_image.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui_state/audiobook_ui_state/audiobook_ui_state.dart';
+import 'package:sikh_audiobooks_flutter/utils/result.dart';
+import 'package:sikh_audiobooks_flutter/utils/utils.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:watch_it/watch_it.dart';
 
-class AudiobookListTile extends StatefulWidget {
+class AudiobookListTile extends WatchingStatefulWidget {
   final AudiobookUiState audiobookUiState;
   final String keyString;
   final bool showAuthor;
@@ -38,7 +42,7 @@ class AudiobookListTile extends StatefulWidget {
 }
 
 class _AudiobookListTileState extends State<AudiobookListTile> {
-  late final AudiobookViewModel viewModel;
+  late AudiobookViewModel viewModel;
 
   @override
   void initState() {
@@ -47,6 +51,19 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
       audiobooksRepository: getIt(),
       id: widget.audiobookUiState.audiobook.id,
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant AudiobookListTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.audiobookUiState.audiobook.id !=
+        widget.audiobookUiState.audiobook.id) {
+      viewModel.onDispose();
+      viewModel = AudiobookViewModel(
+        audiobooksRepository: getIt(),
+        id: widget.audiobookUiState.audiobook.id,
+      );
+    }
   }
 
   @override
@@ -186,6 +203,62 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
 
   @override
   Widget build(BuildContext context) {
+    registerHandler(
+      target: viewModel.addToLibraryCommand.results,
+      handler: (context, CommandResult<void, Result<void>?> value, _) {
+        final resultError = value.error;
+        final resultData = value.data;
+
+        final errorMessage =
+            AppLocalizations.of(context)?.messageErrorAddingToLibrary ?? "";
+
+        final successMessage =
+            AppLocalizations.of(context)?.messageAddedToLibrary ?? "";
+
+        if (resultError != null) {
+          showSnackbar(context, errorMessage);
+          return;
+        }
+        if (resultData != null) {
+          switch (resultData) {
+            case Ok<void>():
+              showSnackbar(context, successMessage);
+            case Error<void>():
+              showSnackbar(context, errorMessage);
+          }
+          return;
+        }
+      },
+    );
+
+    registerHandler(
+      target: viewModel.removeFromLibraryCommand.results,
+      handler: (context, CommandResult<void, Result<void>?> value, _) {
+        final resultError = value.error;
+        final resultData = value.data;
+
+        final errorMessage =
+            AppLocalizations.of(context)?.messageErrorRemovingFromLibrary ?? "";
+
+        final successMessage =
+            AppLocalizations.of(context)?.messageRemovedFromLibrary ?? "";
+
+        if (resultError != null) {
+          showSnackbar(context, errorMessage);
+          return;
+        }
+        if (resultData != null) {
+          switch (resultData) {
+            case Ok<void>():
+              showSnackbar(context, successMessage);
+            case Error<void>():
+              showSnackbar(context, errorMessage);
+          }
+          return;
+        }
+      },
+    );
+
     final locale = Localizations.localeOf(context);
 
     return Material(
@@ -227,6 +300,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
               ),
               Expanded(
                 child: Column(
+                  spacing: Dimens.paddingVertical2XS,
                   crossAxisAlignment:
                       CrossAxisAlignment.start, // Align text left
                   children: [
@@ -238,7 +312,15 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
-                    const SizedBox(height: Dimens.paddingVertical2XS),
+                    if (widget.showAuthor)
+                      Text(
+                        widget.audiobookUiState.author.name[locale
+                                .languageCode] ??
+                            "",
+                        style: TextTheme.of(context).bodySmall,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
                     Row(
                       crossAxisAlignment: CrossAxisAlignment.center,
                       children: [
@@ -292,10 +374,8 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                         ),
                       ],
                     ),
-                    if (widget.audiobookUiState.allDownloaded()) ...[
-                      SizedBox(height: Dimens.paddingVertical2XS),
+                    if (widget.audiobookUiState.allDownloaded())
                       Icon(Icons.download_done),
-                    ],
                   ],
                 ),
               ),

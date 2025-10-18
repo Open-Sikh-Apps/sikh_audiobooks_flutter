@@ -159,5 +159,25 @@
   "labelChapters": "Chapters",
   "@labelChapters": {
     "description": "Label for Chapters"
+  },
+  "messageAddedToLibrary": "Added to library",
+  "@messageAddedToLibrary": {
+    "description": "Message Added To Library"
+  },
+  "messageErrorAddingToLibrary": "Error adding to library",
+  "@messageErrorAddingToLibrary": {
+    "description": "Message Error Adding To Libary"
+  },
+  "messageRemovedFromLibrary": "Removed from library",
+  "@messageRemovedFromLibrary": {
+    "description": "Message Removed From Library"
+  },
+  "messageErrorRemovingFromLibrary": "Error removing from library",
+  "@messageErrorRemovingFromLibrary": {
+    "description": "Message Error Removing From Library"
+  },
+  "messageLibraryEmpty": "Library is empty.",
+  "@messageLibraryEmpty": {
+    "description": "Message Library Empty"
   }
 }

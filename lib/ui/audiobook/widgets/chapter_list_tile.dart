@@ -16,7 +16,7 @@ class ChapterListTile extends StatefulWidget {
 }
 
 class _ChapterListTileState extends State<ChapterListTile> {
-  late final ChapterViewModel viewModel;
+  late ChapterViewModel viewModel;
 
   @override
   void initState() {
@@ -25,6 +25,19 @@ class _ChapterListTileState extends State<ChapterListTile> {
       audiobooksRepository: getIt(),
       id: widget.chapterUiState.chapter.id,
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant ChapterListTile oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.chapterUiState.chapter.id !=
+        widget.chapterUiState.chapter.id) {
+      viewModel.onDispose();
+      viewModel = ChapterViewModel(
+        audiobooksRepository: getIt(),
+        id: widget.chapterUiState.chapter.id,
+      );
+    }
   }
 
   @override

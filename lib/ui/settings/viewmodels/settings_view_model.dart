@@ -6,8 +6,8 @@ import 'package:get_it/get_it.dart';
 import 'package:sikh_audiobooks_flutter/data/repositories/user_settings/user_settings_repository.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
 
-class SettingsViewmodel extends Disposable {
-  SettingsViewmodel({required UserSettingsRepository userSettingsRepository})
+class SettingsViewModel extends Disposable {
+  SettingsViewModel({required UserSettingsRepository userSettingsRepository})
     : _userSettingsRepository = userSettingsRepository;
   final UserSettingsRepository _userSettingsRepository;
 

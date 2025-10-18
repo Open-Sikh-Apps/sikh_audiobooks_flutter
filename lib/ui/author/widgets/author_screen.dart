@@ -30,7 +30,7 @@ class AuthorScreen extends WatchingStatefulWidget {
 }
 
 class _AuthorScreenState extends State<AuthorScreen> {
-  late final AuthorViewModel viewModel;
+  late AuthorViewModel viewModel;
   final _log = Logger();
   bool _appBarCollapsed = false;
   final uuid = Uuid().v1();

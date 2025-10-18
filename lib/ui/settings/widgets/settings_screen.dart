@@ -16,7 +16,7 @@ class SettingsScreen extends WatchingStatefulWidget {
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  late final SettingsViewmodel viewModel;
+  late final SettingsViewModel viewModel;
 
   bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
     DuckRouter.of(context).pop();
@@ -26,7 +26,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    viewModel = SettingsViewmodel(userSettingsRepository: getIt());
+    viewModel = SettingsViewModel(userSettingsRepository: getIt());
     BackButtonInterceptor.add(myInterceptor);
   }
 

@@ -337,6 +337,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Library is empty.'**
   String get messageLibraryEmpty;
+
+  /// Message for No Internet Connection
+  ///
+  /// In en, this message translates to:
+  /// **'No Internet Connection'**
+  String get messageNoConnection;
 }
 
 class _AppLocalizationsDelegate

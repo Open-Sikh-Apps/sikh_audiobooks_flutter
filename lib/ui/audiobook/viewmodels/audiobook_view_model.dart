@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:command_it/command_it.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sikh_audiobooks_flutter/data/repositories/audiobooks/audiobooks_repository.dart';
@@ -60,6 +61,7 @@ class AudiobookViewModel extends Disposable {
           },
         )
         .addTo(_compositeSubscription);
+    internetStatusVN = _audiobooksRepository.internetStatusVN;
   }
 
   final _log = Logger();
@@ -147,6 +149,8 @@ class AudiobookViewModel extends Disposable {
   void cancelDownloadAuthorImage(String authorId) {
     unawaited(_audiobooksRepository.cancelDownloadAuthorImage(authorId));
   }
+
+  late final ValueNotifier<InternetStatus?> internetStatusVN;
 
   @override
   FutureOr onDispose() async {

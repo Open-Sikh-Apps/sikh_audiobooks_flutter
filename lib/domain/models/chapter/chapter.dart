@@ -44,18 +44,14 @@ extension ChapterIterableExtensions on Iterable<Chapter> {
   }
 
   bool anyDownloaded() {
-    if (isEmpty) {
-      return false;
-    } else {
-      return any((c) => (c.localAudioPath != null));
-    }
+    return any((c) => (c.localAudioPath != null));
   }
 
   bool allDownloaded() {
-    if (isEmpty) {
-      return false;
-    } else {
-      return every((c) => (c.localAudioPath != null));
-    }
+    return every((c) => (c.localAudioPath != null));
+  }
+
+  bool noneDownloaded() {
+    return every((c) => (c.localAudioPath == null));
   }
 }

@@ -133,4 +133,7 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get messageLibraryEmpty => 'ਲਾਇਬ੍ਰੇਰੀ ਖਾਲੀ ਹੈ।';
+
+  @override
+  String get messageNoConnection => 'ਕੋਈ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਨਹੀਂ';
 }

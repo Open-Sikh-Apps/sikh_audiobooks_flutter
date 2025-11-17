@@ -1,6 +1,7 @@
 import 'package:auto_size_text/auto_size_text.dart';
 import 'package:command_it/command_it.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:sikh_audiobooks_flutter/config/constants.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/author/author.dart';
@@ -46,10 +47,314 @@ class _AuthorScreenState extends State<AuthorScreen> {
     );
   }
 
+  Widget _getDataWidget(
+    Locale locale,
+    Result<Author?>? authorResult,
+    AudiobookLanguage audiobookLanguage,
+    AudiobookFilter audiobookFilter,
+    AudiobookAuthorSort audiobookAuthorSort,
+    Result<List<AudiobookUiState>>? filteredAudiobookUiStatesResult,
+    bool disconnected,
+  ) {
+    if (authorResult == null || filteredAudiobookUiStatesResult == null) {
+      return LoadingIndicator();
+    }
+    if (authorResult is Error || filteredAudiobookUiStatesResult is Error) {
+      return _getErrorIndicatorWidget(context);
+    }
+    final author = (authorResult as Ok<Author?>).value;
+    if (author == null) {
+      return _getErrorIndicatorWidget(context);
+    }
+    final localImagePath = author.localImagePath;
+    final aboutUrl = author.aboutUrl[locale.languageCode];
+    final aboutUri = aboutUrl == null ? null : Uri.parse(aboutUrl);
+
+    final filteredAudiobooks =
+        (filteredAudiobookUiStatesResult as Ok<List<AudiobookUiState>>).value;
+
+    return Scaffold(
+      body: CustomScrollView(
+        controller: _mainScrollController,
+        slivers: [
+          SliverAppBar(
+            primary: true,
+            expandedHeight:
+                Dimens.authorScreenInfoHeight +
+                kToolbarHeight +
+                Dimens.authorScreenFilterBarHeight,
+            title: AnimatedSwitcher(
+              duration: Constants.animatedSwitcherDuration,
+              child: (_appBarCollapsed)
+                  ? Text(author.name[locale.languageCode] ?? "")
+                  : Container(),
+            ),
+            flexibleSpace: FlexibleSpaceBar(
+              collapseMode: CollapseMode.pin,
+              background: Padding(
+                padding: EdgeInsets.only(
+                  left: Dimens.paddingHorizontalLarge,
+                  right: Dimens.paddingHorizontalLarge,
+                  top: kToolbarHeight + MediaQuery.of(context).padding.top,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: Dimens.paddingVerticalMedium,
+                  children: [
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      spacing: Dimens.authorScreenPhotoSpacing,
+                      children: [
+                        VisibilityDetectorImage(
+                          disconnected: disconnected,
+                          keyString: "${uuid}_author_image_${author.id}",
+                          localImagePath: localImagePath,
+                          width: Dimens.authorScreenPhotoSize,
+                          height: Dimens.authorScreenPhotoSize,
+                          onVisible: () {
+                            viewModel.startDownloadAuthorImage(author.id);
+                          },
+                          onHidden: () {
+                            viewModel.cancelDownloadAuthorImage(author.id);
+                          },
+                        ),
+                        Expanded(
+                          child: AutoSizeText(
+                            author.name[locale.languageCode] ?? "",
+                            style: TextTheme.of(context).headlineSmall,
+                            softWrap: true,
+                            maxLines: 2,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        spacing: Dimens.chipSpacing,
+                        children: [
+                          ActionChip(
+                            label: Text(
+                              AppLocalizations.of(context)?.labelAbout ?? "",
+                            ),
+                            avatar: Icon(Icons.info),
+                            onPressed: aboutUri == null || disconnected
+                                ? null
+                                : () async {
+                                    if (!await launchUrl(aboutUri)) {
+                                      _log.d('Could not launch $aboutUri');
+                                    }
+                                  },
+                          ),
+                          ActionChip(
+                            label: Text(
+                              AppLocalizations.of(context)?.labelShare ?? "",
+                            ),
+                            avatar: Icon(Icons.share),
+                            onPressed: disconnected ? null : null,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            pinned: true,
+            bottom: PreferredSize(
+              preferredSize: Size.fromHeight(
+                Dimens.authorScreenFilterBarHeight,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: Dimens.paddingVerticalSmall,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  spacing: Dimens.paddingVerticalSmall,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: Dimens.paddingHorizontalSmall,
+                      ),
+                      child: Text(
+                        AppLocalizations.of(context)?.labelAudiobooks ?? "",
+                        style: TextTheme.of(context).titleLarge,
+                      ),
+                    ),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: Dimens.paddingHorizontalSmall,
+                        ),
+                        child: Row(
+                          spacing: Dimens.chipSpacing,
+                          children: [
+                            SelectActionChip<AudiobookLanguage>(
+                              icon: Icon(Icons.language),
+                              title:
+                                  AppLocalizations.of(context)?.labelLanguage ??
+                                  "",
+                              selectionSheetTitle:
+                                  AppLocalizations.of(context)?.labelLanguage ??
+                                  "",
+                              selectedValue: audiobookLanguage,
+                              options: [
+                                SelectActionChipOption(
+                                  value: AudiobookLanguage.all,
+                                  title:
+                                      AppLocalizations.of(context)?.labelAll ??
+                                      "",
+                                ),
+                                ...AppLocalizations.supportedLocales.map(
+                                  (locale) => SelectActionChipOption(
+                                    value: AudiobookLanguage.values.firstWhere(
+                                      (a) => (a.name == locale.languageCode),
+                                    ),
+                                    title: locale.fullName(),
+                                  ),
+                                ),
+                              ],
+                              onSubmitted: (audiobookLanguage) {
+                                viewModel.setAudiobookLanguageFilter(
+                                  audiobookLanguage,
+                                );
+                                scrollToTopCollapsed();
+                              },
+                            ),
+                            SelectActionChip<AudiobookFilter>(
+                              icon: Icon(Icons.filter_list),
+                              title:
+                                  AppLocalizations.of(context)?.labelFilter ??
+                                  "",
+                              selectionSheetTitle:
+                                  AppLocalizations.of(context)?.labelFilter ??
+                                  "",
+                              selectedValue: audiobookFilter,
+                              options: [
+                                SelectActionChipOption(
+                                  value: AudiobookFilter.all,
+                                  title:
+                                      AppLocalizations.of(context)?.labelAll ??
+                                      "",
+                                ),
+                                SelectActionChipOption(
+                                  value: AudiobookFilter.downloaded,
+                                  title:
+                                      AppLocalizations.of(
+                                        context,
+                                      )?.labelDownloaded ??
+                                      "",
+                                ),
+                              ],
+                              onSubmitted: (audiobookFilter) {
+                                viewModel.setAudiobookFilter(audiobookFilter);
+                                scrollToTopCollapsed();
+                              },
+                            ),
+                            SelectActionChip<AudiobookAuthorSort>(
+                              icon: Icon(Icons.sort),
+                              title:
+                                  AppLocalizations.of(context)?.labelSort ?? "",
+                              selectionSheetTitle:
+                                  AppLocalizations.of(context)?.labelSort ?? "",
+                              selectedValue: audiobookAuthorSort,
+                              options: [
+                                SelectActionChipOption(
+                                  value: AudiobookAuthorSort.authorDefault,
+                                  title:
+                                      AppLocalizations.of(
+                                        context,
+                                      )?.labelDefault ??
+                                      "",
+                                ),
+                                SelectActionChipOption(
+                                  value: AudiobookAuthorSort.lastPlayed,
+                                  title:
+                                      AppLocalizations.of(
+                                        context,
+                                      )?.labelLastPlayed ??
+                                      "",
+                                ),
+                                SelectActionChipOption(
+                                  value: AudiobookAuthorSort.title,
+                                  title:
+                                      AppLocalizations.of(
+                                        context,
+                                      )?.labelTitle ??
+                                      "",
+                                ),
+                              ],
+                              onSubmitted: (authorSort) {
+                                viewModel.setAudiobookAuthorSort(authorSort);
+                                scrollToTopCollapsed();
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          filteredAudiobooks.isEmpty
+              ? SliverToBoxAdapter(
+                  child: Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(
+                        Dimens.emptyIndicationIconTitlePadding,
+                      ),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.search_off),
+                          Text(
+                            AppLocalizations.of(
+                                  context,
+                                )?.labelNoAudiobooksFound ??
+                                "",
+                            style: Theme.of(context).textTheme.bodyLarge,
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                )
+              : SliverList.builder(
+                  itemCount: filteredAudiobooks.length,
+                  itemBuilder: (context, index) {
+                    final audiobookUiState = filteredAudiobooks[index];
+                    return AudiobookListTile(
+                      showAuthor: false,
+                      audiobookUiState: audiobookUiState,
+                      keyString:
+                          "${uuid}_author_audiobook_${audiobookUiState.audiobook.id}",
+                    );
+                  },
+                ),
+        ],
+      ),
+    );
+  }
+
+  void _onScroll() {
+    setState(() {
+      _appBarCollapsed =
+          _mainScrollController.hasClients &&
+          (_mainScrollController.offset >= (Dimens.authorScreenInfoHeight));
+    });
+  }
+
   @override
   void initState() {
     super.initState();
     viewModel = AuthorViewModel(audiobooksRepository: getIt(), id: widget.id);
+    _mainScrollController.addListener(_onScroll);
   }
 
   @override
@@ -96,371 +401,55 @@ class _AuthorScreenState extends State<AuthorScreen> {
       viewModel.filteredAudiobookUiStatesResultVL,
     ).value;
 
+    final internetStatus = watch(viewModel.internetStatusVN).value;
+    final disconnected = internetStatus == InternetStatus.disconnected;
+
     return AnimatedSwitcher(
       duration: Constants.animatedSwitcherDuration,
       child: refreshDataCommandResults.toWidget(
         whileExecuting: (_, _) => LoadingIndicator(),
-        onError: (_, _, _) => _getErrorIndicatorWidget(context),
+        onError: (_, _, _) {
+          if (disconnected) {
+            return _getDataWidget(
+              locale,
+              authorResult,
+              audiobookLanguage,
+              audiobookFilter,
+              audiobookAuthorSort,
+              filteredAudiobookUiStatesResult,
+              disconnected,
+            );
+          } else {
+            return _getErrorIndicatorWidget(context);
+          }
+        },
         onData: (result, _) {
           if (result == null) {
             return LoadingIndicator();
           }
           if (result is Error) {
-            return _getErrorIndicatorWidget(context);
+            if (disconnected) {
+              return _getDataWidget(
+                locale,
+                authorResult,
+                audiobookLanguage,
+                audiobookFilter,
+                audiobookAuthorSort,
+                filteredAudiobookUiStatesResult,
+                disconnected,
+              );
+            } else {
+              return _getErrorIndicatorWidget(context);
+            }
           } else {
-            if (authorResult == null ||
-                filteredAudiobookUiStatesResult == null) {
-              return LoadingIndicator();
-            }
-            if (authorResult is Error ||
-                filteredAudiobookUiStatesResult is Error) {
-              return _getErrorIndicatorWidget(context);
-            }
-            final author = (authorResult as Ok<Author?>).value;
-            if (author == null) {
-              return _getErrorIndicatorWidget(context);
-            }
-            final localImagePath = author.localImagePath;
-            final aboutUrl = author.aboutUrl[locale.languageCode];
-            final aboutUri = aboutUrl == null ? null : Uri.parse(aboutUrl);
-
-            final filteredAudiobooks =
-                (filteredAudiobookUiStatesResult as Ok<List<AudiobookUiState>>)
-                    .value;
-
-            return Scaffold(
-              body: NotificationListener<ScrollNotification>(
-                onNotification: (_) {
-                  if (context.mounted) {
-                    setState(() {
-                      _appBarCollapsed =
-                          _mainScrollController.hasClients &&
-                          (_mainScrollController.offset >=
-                              (Dimens.authorScreenInfoHeight));
-                    });
-                  }
-
-                  return false;
-                },
-                child: CustomScrollView(
-                  controller: _mainScrollController,
-                  slivers: [
-                    SliverAppBar(
-                      primary: true,
-                      expandedHeight:
-                          Dimens.authorScreenInfoHeight +
-                          kToolbarHeight +
-                          Dimens.authorScreenFilterBarHeight,
-                      title: AnimatedSwitcher(
-                        duration: Constants.animatedSwitcherDuration,
-                        child: (_appBarCollapsed)
-                            ? Text(author.name[locale.languageCode] ?? "")
-                            : Container(),
-                      ),
-                      flexibleSpace: FlexibleSpaceBar(
-                        collapseMode: CollapseMode.pin,
-                        background: Padding(
-                          padding: EdgeInsets.only(
-                            left: Dimens.paddingHorizontalLarge,
-                            right: Dimens.paddingHorizontalLarge,
-                            top:
-                                kToolbarHeight +
-                                MediaQuery.of(context).padding.top,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            spacing: Dimens.paddingVerticalMedium,
-                            children: [
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.center,
-                                spacing: Dimens.authorScreenPhotoSpacing,
-                                children: [
-                                  VisibilityDetectorImage(
-                                    keyString:
-                                        "${uuid}_author_image_${author.id}",
-                                    localImagePath: localImagePath,
-                                    width: Dimens.authorScreenPhotoSize,
-                                    height: Dimens.authorScreenPhotoSize,
-                                    onVisible: () {
-                                      viewModel.startDownloadAuthorImage(
-                                        author.id,
-                                      );
-                                    },
-                                    onHidden: () {
-                                      viewModel.cancelDownloadAuthorImage(
-                                        author.id,
-                                      );
-                                    },
-                                  ),
-                                  Expanded(
-                                    child: AutoSizeText(
-                                      author.name[locale.languageCode] ?? "",
-                                      style: TextTheme.of(
-                                        context,
-                                      ).headlineSmall,
-                                      softWrap: true,
-                                      maxLines: 2,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Row(
-                                  spacing: Dimens.chipSpacing,
-                                  children: [
-                                    ActionChip(
-                                      label: Text(
-                                        AppLocalizations.of(
-                                              context,
-                                            )?.labelAbout ??
-                                            "",
-                                      ),
-                                      avatar: Icon(Icons.info),
-                                      onPressed: aboutUri == null
-                                          ? null
-                                          : () async {
-                                              if (!await launchUrl(aboutUri)) {
-                                                _log.d(
-                                                  'Could not launch $aboutUri',
-                                                );
-                                              }
-                                            },
-                                    ),
-                                    ActionChip(
-                                      label: Text(
-                                        AppLocalizations.of(
-                                              context,
-                                            )?.labelShare ??
-                                            "",
-                                      ),
-                                      avatar: Icon(Icons.share),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      pinned: true,
-                      bottom: PreferredSize(
-                        preferredSize: Size.fromHeight(
-                          Dimens.authorScreenFilterBarHeight,
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: Dimens.paddingVerticalSmall,
-                          ),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.stretch,
-                            spacing: Dimens.paddingVerticalSmall,
-                            children: [
-                              Padding(
-                                padding: const EdgeInsets.symmetric(
-                                  horizontal: Dimens.paddingHorizontalSmall,
-                                ),
-                                child: Text(
-                                  AppLocalizations.of(
-                                        context,
-                                      )?.labelAudiobooks ??
-                                      "",
-                                  style: TextTheme.of(context).titleLarge,
-                                ),
-                              ),
-                              SingleChildScrollView(
-                                scrollDirection: Axis.horizontal,
-                                child: Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: Dimens.paddingHorizontalSmall,
-                                  ),
-                                  child: Row(
-                                    spacing: Dimens.chipSpacing,
-                                    children: [
-                                      SelectActionChip<AudiobookLanguage>(
-                                        icon: Icon(Icons.language),
-                                        title:
-                                            AppLocalizations.of(
-                                              context,
-                                            )?.labelLanguage ??
-                                            "",
-                                        selectionSheetTitle:
-                                            AppLocalizations.of(
-                                              context,
-                                            )?.labelLanguage ??
-                                            "",
-                                        selectedValue: audiobookLanguage,
-                                        options: [
-                                          SelectActionChipOption(
-                                            value: AudiobookLanguage.all,
-                                            title:
-                                                AppLocalizations.of(
-                                                  context,
-                                                )?.labelAll ??
-                                                "",
-                                          ),
-                                          ...AppLocalizations.supportedLocales
-                                              .map(
-                                                (
-                                                  locale,
-                                                ) => SelectActionChipOption(
-                                                  value: AudiobookLanguage
-                                                      .values
-                                                      .firstWhere(
-                                                        (a) =>
-                                                            (a.name ==
-                                                            locale
-                                                                .languageCode),
-                                                      ),
-                                                  title: locale.fullName(),
-                                                ),
-                                              ),
-                                        ],
-                                        onSubmitted: (audiobookLanguage) {
-                                          viewModel.setAudiobookLanguageFilter(
-                                            audiobookLanguage,
-                                          );
-                                          scrollToTopCollapsed();
-                                        },
-                                      ),
-                                      SelectActionChip<AudiobookFilter>(
-                                        icon: Icon(Icons.filter_list),
-                                        title:
-                                            AppLocalizations.of(
-                                              context,
-                                            )?.labelFilter ??
-                                            "",
-                                        selectionSheetTitle:
-                                            AppLocalizations.of(
-                                              context,
-                                            )?.labelFilter ??
-                                            "",
-                                        selectedValue: audiobookFilter,
-                                        options: [
-                                          SelectActionChipOption(
-                                            value: AudiobookFilter.all,
-                                            title:
-                                                AppLocalizations.of(
-                                                  context,
-                                                )?.labelAll ??
-                                                "",
-                                          ),
-                                          SelectActionChipOption(
-                                            value: AudiobookFilter.downloaded,
-                                            title:
-                                                AppLocalizations.of(
-                                                  context,
-                                                )?.labelDownloaded ??
-                                                "",
-                                          ),
-                                        ],
-                                        onSubmitted: (audiobookFilter) {
-                                          viewModel.setAudiobookFilter(
-                                            audiobookFilter,
-                                          );
-                                          scrollToTopCollapsed();
-                                        },
-                                      ),
-                                      SelectActionChip<AudiobookAuthorSort>(
-                                        icon: Icon(Icons.sort),
-                                        title:
-                                            AppLocalizations.of(
-                                              context,
-                                            )?.labelSort ??
-                                            "",
-                                        selectionSheetTitle:
-                                            AppLocalizations.of(
-                                              context,
-                                            )?.labelSort ??
-                                            "",
-                                        selectedValue: audiobookAuthorSort,
-                                        options: [
-                                          SelectActionChipOption(
-                                            value: AudiobookAuthorSort
-                                                .authorDefault,
-                                            title:
-                                                AppLocalizations.of(
-                                                  context,
-                                                )?.labelDefault ??
-                                                "",
-                                          ),
-                                          SelectActionChipOption(
-                                            value:
-                                                AudiobookAuthorSort.lastPlayed,
-                                            title:
-                                                AppLocalizations.of(
-                                                  context,
-                                                )?.labelLastPlayed ??
-                                                "",
-                                          ),
-                                          SelectActionChipOption(
-                                            value: AudiobookAuthorSort.title,
-                                            title:
-                                                AppLocalizations.of(
-                                                  context,
-                                                )?.labelTitle ??
-                                                "",
-                                          ),
-                                        ],
-                                        onSubmitted: (authorSort) {
-                                          viewModel.setAudiobookAuthorSort(
-                                            authorSort,
-                                          );
-                                          scrollToTopCollapsed();
-                                        },
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                    filteredAudiobooks.isEmpty
-                        ? SliverToBoxAdapter(
-                            child: Center(
-                              child: Padding(
-                                padding: const EdgeInsets.all(
-                                  Dimens.emptyIndicationIconTitlePadding,
-                                ),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  mainAxisSize: MainAxisSize.min,
-                                  children: [
-                                    Icon(Icons.search_off),
-                                    Text(
-                                      AppLocalizations.of(
-                                            context,
-                                          )?.labelNoAudiobooksFound ??
-                                          "",
-                                      style: Theme.of(
-                                        context,
-                                      ).textTheme.bodyLarge,
-                                      textAlign: TextAlign.center,
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                          )
-                        : SliverList.builder(
-                            itemCount: filteredAudiobooks.length,
-                            itemBuilder: (context, index) {
-                              final audiobookUiState =
-                                  filteredAudiobooks[index];
-                              return AudiobookListTile(
-                                showAuthor: false,
-                                audiobookUiState: audiobookUiState,
-                                keyString:
-                                    "${uuid}_author_audiobook_${audiobookUiState.audiobook.id}",
-                              );
-                            },
-                          ),
-                  ],
-                ),
-              ),
+            return _getDataWidget(
+              locale,
+              authorResult,
+              audiobookLanguage,
+              audiobookFilter,
+              audiobookAuthorSort,
+              filteredAudiobookUiStatesResult,
+              disconnected,
             );
           }
         },

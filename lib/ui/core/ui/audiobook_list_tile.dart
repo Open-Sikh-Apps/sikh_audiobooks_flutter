@@ -3,6 +3,7 @@
 import 'package:command_it/command_it.dart';
 import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/audiobook/audiobook.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/audiobook_resume_location/audiobook_resume_location.dart';
@@ -72,7 +73,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
     super.dispose();
   }
 
-  void showAudiobookBottomSheet(BuildContext context) {
+  void showAudiobookBottomSheet(BuildContext context, bool disconnected) {
     final locale = Localizations.localeOf(context);
 
     showModalBottomSheet(
@@ -135,6 +136,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                 )
               else
                 ListTile(
+                  enabled: !disconnected,
                   leading: Icon(Icons.download),
                   title: Text(
                     AppLocalizations.of(context)?.labelDownload ?? "",
@@ -167,6 +169,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                   },
                 ),
               ListTile(
+                enabled: !disconnected,
                 leading: Icon(Icons.share),
                 title: Text(AppLocalizations.of(context)?.labelShare ?? ""),
                 onTap: () {
@@ -183,6 +186,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                 },
               ),
               ListTile(
+                enabled: !disconnected,
                 leading: Icon(Icons.menu_book),
                 title: Text(AppLocalizations.of(context)?.labelReadBook ?? ""),
                 onTap: () {
@@ -194,6 +198,17 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                   );
                 },
               ),
+              if (widget.showAuthor)
+                ListTile(
+                  leading: Icon(Icons.account_box),
+                  title: Text(AppLocalizations.of(context)?.labelAuthor ?? ""),
+                  onTap: () {
+                    Navigator.pop(context);
+                    DuckRouter.of(context).navigate(
+                      to: AuthorLocation(widget.audiobookUiState.author.id),
+                    );
+                  },
+                ),
             ],
           ),
         );
@@ -261,6 +276,9 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
 
     final locale = Localizations.localeOf(context);
 
+    final internetStatus = watch(viewModel.internetStatusVN).value;
+    final disconnected = internetStatus == InternetStatus.disconnected;
+
     return Material(
       child: InkWell(
         // Tappable area with event handlers
@@ -269,7 +287,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
             to: AudiobookLocation(widget.audiobookUiState.audiobook.id),
           );
         },
-        onLongPress: () => (showAudiobookBottomSheet(context)),
+        onLongPress: () => (showAudiobookBottomSheet(context, disconnected)),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: Dimens.audiobookListItemPaddingHorizontal,
@@ -282,6 +300,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                   right: Dimens.paddingHorizontalXS,
                 ),
                 child: VisibilityDetectorImage(
+                  disconnected: disconnected,
                   keyString: widget.keyString,
                   localImagePath: widget.audiobookLocalImagePath,
                   width: Dimens.audiobookListPhotoWidth,
@@ -383,25 +402,28 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                 spacing: Dimens.paddingHorizontal2XS,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  IconButton(
-                    iconSize: Dimens.audiobookListItemIconSize,
-                    icon: Icon(
-                      widget.audiobookUiState.isPlaying
-                          ? Icons.pause_circle_outline
-                          : Icons.play_circle_outline,
+                  if (!(widget.audiobookUiState.noneDownloaded() &&
+                      disconnected))
+                    IconButton(
+                      iconSize: Dimens.audiobookListItemIconSize,
+                      icon: Icon(
+                        widget.audiobookUiState.isPlaying
+                            ? Icons.pause_circle_outline
+                            : Icons.play_circle_outline,
+                      ),
+                      onPressed: () {
+                        if (widget.audiobookUiState.isPlaying) {
+                          viewModel.pauseCommand();
+                        } else {
+                          viewModel.playCommand();
+                        }
+                      },
                     ),
-                    onPressed: () {
-                      if (widget.audiobookUiState.isPlaying) {
-                        viewModel.pauseCommand();
-                      } else {
-                        viewModel.playCommand();
-                      }
-                    },
-                  ),
                   IconButton(
                     iconSize: Dimens.audiobookListItemIconSize,
                     icon: Icon(Icons.more_vert),
-                    onPressed: () => (showAudiobookBottomSheet(context)),
+                    onPressed: () =>
+                        (showAudiobookBottomSheet(context, disconnected)),
                   ),
                 ],
               ),

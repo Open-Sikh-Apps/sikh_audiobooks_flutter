@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:command_it/command_it.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sikh_audiobooks_flutter/data/repositories/audiobooks/audiobooks_repository.dart';
@@ -134,7 +135,9 @@ class AuthorViewModel extends Disposable {
             return Result.ok(result);
           },
         );
+    internetStatusVN = _audiobooksRepository.internetStatusVN;
   }
+
   final _log = Logger();
 
   final ValueNotifier<Result<Author?>?> _authorResultVN = ValueNotifier(null);
@@ -219,4 +222,6 @@ class AuthorViewModel extends Disposable {
     _currentLocaleVN.dispose();
     _allAudiobookUiStatesResultVN.dispose();
   }
+
+  late final ValueNotifier<InternetStatus?> internetStatusVN;
 }

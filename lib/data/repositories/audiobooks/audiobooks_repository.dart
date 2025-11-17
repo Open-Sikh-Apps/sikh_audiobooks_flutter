@@ -5,7 +5,10 @@ import 'dart:io';
 import 'package:async/async.dart' hide Result;
 import 'package:collection/collection.dart';
 import 'package:command_it/command_it.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:get_it/get_it.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart';
 import 'package:sikh_audiobooks_flutter/config/constants.dart';
@@ -27,6 +30,7 @@ abstract class AudiobooksRepository extends Disposable {
   /// - downloads any author images, if missing or obsolete
   // Future<List<Author>> fetchAuthorList();
   Command<void, Result<void>?> get refreshDataCommand;
+  ValueNotifier<InternetStatus?> get internetStatusVN;
 
   Future<void> startDownloadAuthorImage(String authorId);
   Future<void> cancelDownloadAuthorImage(String authorId);
@@ -64,6 +68,24 @@ abstract class AudiobooksRepository extends Disposable {
   Stream<List<Chapter>> getInLibraryChaptersStream();
 }
 
+// handle offline functionality
+// expose internet connection status
+// on offline
+//    - cancel refreshDataCommand
+//    - cancel any image downloads
+//    - TODO(pause any network audio which is playing and disable from queue)
+//    - TODO(disable any network audios in queue)
+// on online
+//    - start refreshDataCommand if failed previously
+//    - refresh frontend widgets to load images again, if needed
+//    - TODO(enable any disabled network audios in queue)
+// general operations
+//    - check online/offline
+//        - before starting any image download
+//        - before syncing database online
+// pause internet subscription on app background
+// TODO(but not when playing any network audio)
+
 class AudiobooksRepositoryProd extends AudiobooksRepository {
   AudiobooksRepositoryProd({
     required SharedPreferencesService sharedPreferencesService,
@@ -75,7 +97,51 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
        _remoteDbService = remoteDbService,
        _remoteStorageService = remoteStorageService,
        _localDbService = dbService,
-       _appDocsDir = appDocsDir;
+       _appDocsDir = appDocsDir {
+    _refreshDataCommand = Command.createAsyncNoParam(() async {
+      _log.d("_refreshDataCommand executing");
+
+      _refreshDataCancellable = CancelableOperation.fromFuture(
+        _parseAndUpdateJsonData(),
+      );
+
+      final result = await _refreshDataCancellable?.valueOrCancellation();
+      if (_refreshDataCancellable?.isCanceled == true) {
+        return Result.error("Fetch cancelled.");
+      }
+      if (result is Error) {
+        _log.d("result is Error", error: result.error);
+        return result;
+      }
+
+      return Result.ok(null);
+    }, initialValue: null);
+    _refreshDataCommand.execute();
+
+    _internetStatusVNSubscription = _internetStatusVN.listen((status, _) async {
+      if (status == InternetStatus.disconnected) {
+        await _refreshDataCancellable?.cancel();
+        await cancelImageDownloads();
+      } else if (status == InternetStatus.connected) {
+        final refreshDataCommandResults = _refreshDataCommand.results.value;
+        if (refreshDataCommandResults.hasError ||
+            (refreshDataCommandResults.data is Error)) {
+          _refreshDataCommand.execute();
+        }
+      }
+    });
+
+    _internetStatusSubscription = subscribeInternetChanges();
+
+    _fgbgSubscription = FGBGEvents.instance.stream.listen((event) async {
+      switch (event) {
+        case FGBGType.background:
+          await _internetStatusSubscription?.cancel();
+        case FGBGType.foreground:
+          _internetStatusSubscription = subscribeInternetChanges();
+      }
+    });
+  }
 
   final _log = Logger();
   final SharedPreferencesService _sharedPreferencesService;
@@ -85,24 +151,29 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   final Map<String, CancelableOperation> _imageDownloadTasksMap = {};
   final Directory _appDocsDir;
 
-  late final Command<void, Result<void>?> _refreshDataCommand =
-      Command.createAsyncNoParam(() async {
-        _log.d("_refreshDataCommand executing");
-        final result = await _parseAndUpdateJsonData();
+  CancelableOperation<Result<void>>? _refreshDataCancellable;
 
-        if (result is Error) {
-          _log.d("result is Error", error: result.error);
-          return result;
-        }
-
-        return Result.ok(null);
-      }, initialValue: null)..execute();
+  late final Command<void, Result<void>?> _refreshDataCommand;
 
   @override
   Command<void, Result<void>?> get refreshDataCommand => _refreshDataCommand;
 
+  final ValueNotifier<InternetStatus?> _internetStatusVN = ValueNotifier(null);
+
+  @override
+  ValueNotifier<InternetStatus?> get internetStatusVN => _internetStatusVN;
+
+  StreamSubscription<InternetStatus>? _internetStatusSubscription;
+
+  late final StreamSubscription<FGBGType> _fgbgSubscription;
+
+  late final ListenableSubscription _internetStatusVNSubscription;
+
   @override
   Future<void> startDownloadAuthorImage(String authorId) async {
+    if (internetStatusVN.value == InternetStatus.disconnected) {
+      return;
+    }
     try {
       if (_imageDownloadTasksMap.containsKey(authorId)) {
         _log.d("already downloading");
@@ -143,7 +214,10 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
         localFilePath: localFilePath,
       );
       _imageDownloadTasksMap[authorId] = cancelable;
-      await cancelable.value;
+      await cancelable.valueOrCancellation();
+      if (cancelable.isCanceled) {
+        throw "Download cancelled";
+      }
 
       final Result<Author?> authorFromDbAfterDownloadResult =
           await _localDbService.getAuthorById(authorId);
@@ -195,6 +269,9 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
 
   @override
   Future<void> startDownloadAudiobookImage(String audiobookId) async {
+    if (internetStatusVN.value == InternetStatus.disconnected) {
+      return;
+    }
     try {
       if (_imageDownloadTasksMap.containsKey(audiobookId)) {
         _log.d("already downloading");
@@ -235,7 +312,10 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
         localFilePath: localFilePath,
       );
       _imageDownloadTasksMap[audiobookId] = cancelable;
-      await cancelable.value;
+      await cancelable.valueOrCancellation();
+      if (cancelable.isCanceled) {
+        throw "Download cancelled";
+      }
 
       final Result<Audiobook?> audiobookFromDbAfterDownloadResult =
           await _localDbService.getAudiobookById(audiobookId);
@@ -290,6 +370,10 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   }
 
   Future<Result<void>> _parseAndUpdateJsonData() async {
+    if (internetStatusVN.value == InternetStatus.disconnected) {
+      return Result.error("No Internet");
+    }
+
     final dataVersionResult = await _sharedPreferencesService
         .fetchLocalDataVersion();
     final int? localDataVersion;
@@ -566,11 +650,25 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
 
   @override
   FutureOr onDispose() async {
+    await cancelImageDownloads();
+    _refreshDataCommand.dispose();
+    _internetStatusVNSubscription.cancel();
+    await _fgbgSubscription.cancel();
+    await _internetStatusSubscription?.cancel();
+    _internetStatusVN.dispose();
+  }
+
+  Future cancelImageDownloads() async {
     for (final downloadTaskEntry in _imageDownloadTasksMap.entries) {
       await downloadTaskEntry.value.cancel();
       _imageDownloadTasksMap.remove(downloadTaskEntry.key);
     }
-    _refreshDataCommand.dispose();
+  }
+
+  StreamSubscription<InternetStatus> subscribeInternetChanges() {
+    return InternetConnection().onStatusChange.listen((InternetStatus status) {
+      _internetStatusVN.value = status;
+    });
   }
 
   @override

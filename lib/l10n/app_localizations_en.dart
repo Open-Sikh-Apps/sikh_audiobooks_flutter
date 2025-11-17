@@ -132,4 +132,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messageLibraryEmpty => 'Library is empty.';
+
+  @override
+  String get messageNoConnection => 'No Internet Connection';
 }

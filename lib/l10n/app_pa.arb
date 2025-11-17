@@ -39,5 +39,6 @@
   "messageErrorAddingToLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚ ਜੋੜਨ ਵਿੱਚ ਗੜਬੜ ਹੋਈ",
   "messageRemovedFromLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਤੋਂ ਹਟਾਇਆ ਗਿਆ",
   "messageErrorRemovingFromLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚੋਂ ਹਟਾਉਣ ਵੇਲੇ ਗੜਬੜ ਹੋਈ",
-  "messageLibraryEmpty": "ਲਾਇਬ੍ਰੇਰੀ ਖਾਲੀ ਹੈ।"
+  "messageLibraryEmpty": "ਲਾਇਬ੍ਰੇਰੀ ਖਾਲੀ ਹੈ।",
+  "messageNoConnection": "ਕੋਈ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਨਹੀਂ"
 }

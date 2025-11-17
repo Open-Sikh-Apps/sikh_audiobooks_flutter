@@ -53,4 +53,5 @@ extension AudiobookUiStateExtensions on AudiobookUiState {
 
   bool anyDownloaded() => chapters.anyDownloaded();
   bool allDownloaded() => chapters.allDownloaded();
+  bool noneDownloaded() => chapters.noneDownloaded();
 }

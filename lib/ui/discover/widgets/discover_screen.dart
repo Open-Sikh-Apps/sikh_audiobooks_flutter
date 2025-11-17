@@ -1,6 +1,7 @@
 import 'package:command_it/command_it.dart';
 import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:sikh_audiobooks_flutter/config/constants.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/author/author.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
@@ -35,6 +36,52 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
     );
   }
 
+  Widget _getDataWidget(
+    BuildContext context,
+    Result<List<Author>>? allAuthorsResult,
+    bool disconnected,
+  ) {
+    if (allAuthorsResult == null) {
+      return LoadingIndicator();
+    } else {
+      switch (allAuthorsResult) {
+        case Ok<List<Author>>():
+          if (allAuthorsResult.value.isEmpty) {
+            return _getErrorIndicatorWidget(context);
+          }
+          return Scaffold(
+            body: SafeArea(
+              child: RefreshIndicator(
+                onRefresh: () async {
+                  await viewModel.refreshDataCommand.executeWithFuture();
+                },
+                child: ListView(
+                  padding: EdgeInsets.symmetric(
+                    horizontal: Dimens.of(context).paddingScreenHorizontal,
+                    vertical: Dimens.of(context).paddingScreenVertical,
+                  ),
+                  children: [
+                    Text(
+                      AppLocalizations.of(context)?.labelAuthors ?? "",
+                      style: TextTheme.of(context).headlineLarge,
+                    ),
+                    SizedBox(height: Dimens.paddingVertical),
+                    AuthorGrid(
+                      allAuthors: allAuthorsResult.value,
+                      viewModel: viewModel,
+                      disconnected: disconnected,
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        case Error<List<Author>>():
+          return _getErrorIndicatorWidget(context);
+      }
+    }
+  }
+
   @override
   void initState() {
     super.initState();
@@ -55,56 +102,32 @@ class _DiscoverScreenState extends State<DiscoverScreen> {
 
     final allAuthorsResult = watch(viewModel.allAuthorsResultVN).value;
 
+    final internetStatus = watch(viewModel.internetStatusVN).value;
+    final disconnected = internetStatus == InternetStatus.disconnected;
+
     return AnimatedSwitcher(
       duration: Constants.animatedSwitcherDuration,
       child: refreshDataCommandResults.toWidget(
         whileExecuting: (_, _) => LoadingIndicator(),
-        onError: (_, _, _) => _getErrorIndicatorWidget(context),
+        onError: (_, _, _) {
+          if (disconnected) {
+            return _getDataWidget(context, allAuthorsResult, disconnected);
+          } else {
+            return _getErrorIndicatorWidget(context);
+          }
+        },
         onData: (result, _) {
           if (result == null) {
             return LoadingIndicator();
           }
           if (result is Error) {
-            return _getErrorIndicatorWidget(context);
-          } else {
-            if (allAuthorsResult == null) {
-              return LoadingIndicator();
+            if (disconnected) {
+              return _getDataWidget(context, allAuthorsResult, disconnected);
             } else {
-              switch (allAuthorsResult) {
-                case Ok<List<Author>>():
-                  return Scaffold(
-                    body: SafeArea(
-                      child: RefreshIndicator(
-                        onRefresh: () async {
-                          await viewModel.refreshDataCommand
-                              .executeWithFuture();
-                        },
-                        child: ListView(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: Dimens.of(
-                              context,
-                            ).paddingScreenHorizontal,
-                            vertical: Dimens.of(context).paddingScreenVertical,
-                          ),
-                          children: [
-                            Text(
-                              AppLocalizations.of(context)?.labelAuthors ?? "",
-                              style: TextTheme.of(context).headlineLarge,
-                            ),
-                            SizedBox(height: Dimens.paddingVertical),
-                            AuthorGrid(
-                              allAuthors: allAuthorsResult.value,
-                              viewModel: viewModel,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  );
-                case Error<List<Author>>():
-                  return _getErrorIndicatorWidget(context);
-              }
+              return _getErrorIndicatorWidget(context);
             }
+          } else {
+            return _getDataWidget(context, allAuthorsResult, disconnected);
           }
         },
       ),
@@ -117,9 +140,11 @@ class AuthorGrid extends StatelessWidget {
     super.key,
     required this.allAuthors,
     required this.viewModel,
+    required this.disconnected,
   });
   final DiscoverViewModel viewModel;
   final List<Author> allAuthors;
+  final bool disconnected;
 
   @override
   Widget build(BuildContext context) {
@@ -131,7 +156,11 @@ class AuthorGrid extends StatelessWidget {
         crossAxisAlignment: WrapCrossAlignment.start,
         children: [
           ...allAuthors.map(
-            (author) => AuthorItem(author: author, viewModel: viewModel),
+            (author) => AuthorItem(
+              author: author,
+              viewModel: viewModel,
+              disconnected: disconnected,
+            ),
           ),
         ],
       ),
@@ -140,9 +169,15 @@ class AuthorGrid extends StatelessWidget {
 }
 
 class AuthorItem extends StatelessWidget {
-  AuthorItem({super.key, required this.author, required this.viewModel});
+  AuthorItem({
+    super.key,
+    required this.author,
+    required this.viewModel,
+    required this.disconnected,
+  });
   final DiscoverViewModel viewModel;
   final Author author;
+  final bool disconnected;
   final String uuid = Uuid().v1();
 
   @override
@@ -162,6 +197,7 @@ class AuthorItem extends StatelessWidget {
           spacing: Dimens.authorItemInsideSpacing,
           children: [
             VisibilityDetectorImage(
+              disconnected: disconnected,
               keyString: "${uuid}_discover_${author.id}",
               localImagePath: localImagePath,
               width: Dimens.authorGridPhotoSize,

@@ -5,6 +5,7 @@ import 'package:collection/collection.dart';
 import 'package:command_it/command_it.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get_it/get_it.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:sikh_audiobooks_flutter/data/repositories/audiobooks/audiobooks_repository.dart';
@@ -107,7 +108,10 @@ class LibraryViewModel extends Disposable {
             return Result.ok(result);
           },
         );
+    internetStatusVN = _audiobooksRepository.internetStatusVN;
   }
+
+  late final ValueNotifier<InternetStatus?> internetStatusVN;
 
   final _log = Logger();
 

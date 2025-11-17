@@ -14,6 +14,7 @@ class VisibilityDetectorImage extends StatelessWidget {
     required this.height,
     required this.onVisible,
     required this.onHidden,
+    required this.disconnected,
   });
   final String keyString;
   final String? localImagePath;
@@ -21,37 +22,52 @@ class VisibilityDetectorImage extends StatelessWidget {
   final double height;
   final void Function() onVisible;
   final void Function() onHidden;
+  final bool disconnected;
 
   @override
   Widget build(BuildContext context) {
     final currentLocalImagePath = localImagePath;
+    final currentDisconnected = disconnected;
 
-    return VisibilityDetector(
-      key: Key(keyString),
-      child: AnimatedSwitcher(
-        duration: Constants.animatedSwitcherDuration,
-        child: (currentLocalImagePath == null)
-            ? Skeletonizer.zone(
-                child: Bone(width: width, height: height),
-              )
-            : Image.file(
-                File(currentLocalImagePath),
-                width: width,
-                height: height,
-                fit: BoxFit.contain,
-                errorBuilder: (context, error, stackTrace) =>
-                    Placeholder(fallbackHeight: height, fallbackWidth: width),
-              ),
-      ),
-      onVisibilityChanged: (visibilityInfo) {
-        if (localImagePath == null) {
-          if (visibilityInfo.visibleFraction > 0) {
-            onVisible();
-          } else {
-            onHidden();
-          }
-        }
-      },
-    );
+    return (currentDisconnected && (currentLocalImagePath == null))
+        ? Container(
+            width: width,
+            height: height,
+            color: ColorScheme.of(context).secondary,
+            alignment: AlignmentGeometry.center,
+            child: Icon(
+              Icons.broken_image,
+              color: ColorScheme.of(context).onSecondary,
+            ),
+          )
+        : VisibilityDetector(
+            key: Key(keyString),
+            child: AnimatedSwitcher(
+              duration: Constants.animatedSwitcherDuration,
+              child: (currentLocalImagePath == null)
+                  ? Skeletonizer.zone(
+                      child: Bone(width: width, height: height),
+                    )
+                  : Image.file(
+                      File(currentLocalImagePath),
+                      width: width,
+                      height: height,
+                      fit: BoxFit.contain,
+                      errorBuilder: (context, error, stackTrace) => Placeholder(
+                        fallbackHeight: height,
+                        fallbackWidth: width,
+                      ),
+                    ),
+            ),
+            onVisibilityChanged: (visibilityInfo) {
+              if (localImagePath == null) {
+                if (visibilityInfo.visibleFraction > 0) {
+                  onVisible();
+                } else {
+                  onHidden();
+                }
+              }
+            },
+          );
   }
 }

@@ -179,5 +179,9 @@
   "messageLibraryEmpty": "Library is empty.",
   "@messageLibraryEmpty": {
     "description": "Message Library Empty"
+  },
+  "messageNoConnection": "No Internet Connection",
+  "@messageNoConnection": {
+    "description": "Message for No Internet Connection"
   }
 }

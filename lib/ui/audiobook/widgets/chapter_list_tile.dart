@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:not_static_icons/not_static_icons.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/api_duration/api_duration.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
@@ -6,8 +7,9 @@ import 'package:sikh_audiobooks_flutter/main.dart';
 import 'package:sikh_audiobooks_flutter/ui/audiobook/viewmodels/chapter_view_model.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/themes/dimens.dart';
 import 'package:sikh_audiobooks_flutter/ui/core/ui_state/chapter_ui_state/chapter_ui_state.dart';
+import 'package:watch_it/watch_it.dart';
 
-class ChapterListTile extends StatefulWidget {
+class ChapterListTile extends WatchingStatefulWidget {
   const ChapterListTile({super.key, required this.chapterUiState});
   final ChapterUiState chapterUiState;
 
@@ -46,7 +48,7 @@ class _ChapterListTileState extends State<ChapterListTile> {
     super.dispose();
   }
 
-  void showChapterBottomSheet(BuildContext context) {
+  void showChapterBottomSheet(BuildContext context, bool disconnected) {
     final locale = Localizations.localeOf(context);
     showModalBottomSheet(
       isScrollControlled: true,
@@ -80,6 +82,7 @@ class _ChapterListTileState extends State<ChapterListTile> {
                 )
               else
                 ListTile(
+                  enabled: !disconnected,
                   leading: Icon(Icons.download),
                   title: Text(
                     AppLocalizations.of(context)?.labelDownload ?? "",
@@ -90,6 +93,7 @@ class _ChapterListTileState extends State<ChapterListTile> {
                   },
                 ),
               ListTile(
+                enabled: !disconnected,
                 leading: Icon(Icons.share),
                 title: Text(AppLocalizations.of(context)?.labelShare ?? ""),
                 onTap: () {
@@ -108,65 +112,125 @@ class _ChapterListTileState extends State<ChapterListTile> {
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context);
 
-    return Material(
-      child: InkWell(
-        onTap: () {
-          viewModel.playCommand();
-          //TODO navigate to play screen
-        },
-        onLongPress: () => (showChapterBottomSheet(context)),
-        child: Padding(
-          padding: EdgeInsetsGeometry.symmetric(
-            horizontal: Dimens.chapterListItemPaddingHorizontal,
-            vertical: Dimens.chapterListItemPaddingVertical,
+    final internetStatus = watch(viewModel.internetStatusVN).value;
+    final disconnected = internetStatus == InternetStatus.disconnected;
+
+    final chapterUnavailable =
+        ((widget.chapterUiState.chapter.localAudioPath == null) &&
+        disconnected);
+    //TODO continue styling listtile as per previous design
+    //text size and leading padding
+    return ListTile(
+      horizontalTitleGap: Dimens.paddingHorizontal2XS,
+      contentPadding: EdgeInsetsGeometry.symmetric(
+        horizontal: Dimens.chapterListItemPaddingHorizontal,
+        vertical: Dimens.chapterListItemPaddingVertical,
+      ),
+      enabled: !chapterUnavailable,
+      onTap: () {
+        viewModel.playCommand();
+        //TODO navigate to play screen
+      },
+      onLongPress: () => (showChapterBottomSheet(context, disconnected)),
+      minLeadingWidth: Dimens.chapterListItemPlayingIconSize,
+      leading: (widget.chapterUiState.isPlaying)
+          ? AudioLinesIcon(
+              size: Dimens.chapterListItemPlayingIconSize,
+              infiniteLoop: true,
+              enableTouchInteraction: false,
+            )
+          : SizedBox(width: Dimens.chapterListItemPlayingIconSize),
+      title: Text(
+        widget.chapterUiState.chapter.name[locale.languageCode] ?? "",
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: TextStyle(fontSize: TextTheme.of(context).bodyMedium?.fontSize),
+      ),
+      subtitle: (widget.chapterUiState.chapter.localAudioPath != null)
+          ? Icon(Icons.download_done)
+          : null,
+      trailing: Row(
+        spacing: Dimens.paddingHorizontal2XS,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            widget.chapterUiState.chapter.duration.toDurationString(),
+            style: TextStyle(
+              fontSize: TextTheme.of(context).bodyMedium?.fontSize,
+            ),
           ),
-          child: Row(
-            spacing: Dimens.paddingHorizontal2XS,
-            children: [
-              if (widget.chapterUiState.isPlaying)
-                AudioLinesIcon(
-                  size: Dimens.chapterListItemPlayingIconSize,
-                  infiniteLoop: true,
-                  enableTouchInteraction: false,
-                )
-              else
-                SizedBox(width: Dimens.chapterListItemPlayingIconSize),
-              Expanded(
-                child: Column(
-                  spacing: Dimens.paddingVertical2XS,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      widget.chapterUiState.chapter.name[locale.languageCode] ??
-                          "",
-                      style: TextTheme.of(context).bodyMedium,
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                    if (widget.chapterUiState.chapter.localAudioPath != null)
-                      Icon(Icons.download_done),
-                  ],
-                ),
-              ),
-              Row(
-                spacing: Dimens.paddingHorizontal2XS,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    widget.chapterUiState.chapter.duration.toDurationString(),
-                    style: TextTheme.of(context).bodyMedium,
-                  ),
-                  IconButton(
-                    iconSize: Dimens.chapterListItemIconSize,
-                    icon: Icon(Icons.more_vert),
-                    onPressed: () => (showChapterBottomSheet(context)),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+          if (!chapterUnavailable)
+            IconButton(
+              iconSize: Dimens.chapterListItemIconSize,
+              icon: Icon(Icons.more_vert),
+              onPressed: () => (showChapterBottomSheet(context, disconnected)),
+            ),
+        ],
       ),
     );
+
+    // return Material(
+    //   child: InkWell(
+    //     onTap: chapterOffline
+    //         ? null
+    //         : () {
+    //             viewModel.playCommand();
+    //             //TODO navigate to play screen
+    //           },
+    //     onLongPress: () => (showChapterBottomSheet(context, disconnected)),
+    //     child: Padding(
+    //       padding: EdgeInsetsGeometry.symmetric(
+    //         horizontal: Dimens.chapterListItemPaddingHorizontal,
+    //         vertical: Dimens.chapterListItemPaddingVertical,
+    //       ),
+    //       child: Row(
+    //         spacing: Dimens.paddingHorizontal2XS,
+    //         children: [
+    //           if (widget.chapterUiState.isPlaying)
+    //             AudioLinesIcon(
+    //               size: Dimens.chapterListItemPlayingIconSize,
+    //               infiniteLoop: true,
+    //               enableTouchInteraction: false,
+    //             )
+    //           else
+    //             SizedBox(width: Dimens.chapterListItemPlayingIconSize),
+    //           Expanded(
+    //             child: Column(
+    //               spacing: Dimens.paddingVertical2XS,
+    //               crossAxisAlignment: CrossAxisAlignment.start,
+    //               children: [
+    //                 Text(
+    //                   widget.chapterUiState.chapter.name[locale.languageCode] ??
+    //                       "",
+    //                   style: TextTheme.of(context).bodyMedium,
+    //                   maxLines: 2,
+    //                   overflow: TextOverflow.ellipsis,
+    //                 ),
+    //                 if (widget.chapterUiState.chapter.localAudioPath != null)
+    //                   Icon(Icons.download_done),
+    //               ],
+    //             ),
+    //           ),
+    //           Row(
+    //             spacing: Dimens.paddingHorizontal2XS,
+    //             mainAxisSize: MainAxisSize.min,
+    //             children: [
+    //               Text(
+    //                 widget.chapterUiState.chapter.duration.toDurationString(),
+    //                 style: TextTheme.of(context).bodyMedium,
+    //               ),
+    //               IconButton(
+    //                 iconSize: Dimens.chapterListItemIconSize,
+    //                 icon: Icon(Icons.more_vert),
+    //                 onPressed: () =>
+    //                     (showChapterBottomSheet(context, disconnected)),
+    //               ),
+    //             ],
+    //           ),
+    //         ],
+    //       ),
+    //     ),
+    //   ),
+    // );
   }
 }

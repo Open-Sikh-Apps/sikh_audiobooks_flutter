@@ -1,6 +1,5 @@
-import 'package:back_button_interceptor/back_button_interceptor.dart';
-import 'package:duck_router/duck_router.dart';
 import 'package:flutter/material.dart';
+import 'package:sikh_audiobooks_flutter/data/services/shared_preferences_service.dart';
 import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/main.dart';
 import 'package:sikh_audiobooks_flutter/ui/settings/viewmodels/settings_view_model.dart';
@@ -18,29 +17,35 @@ class SettingsScreen extends WatchingStatefulWidget {
 class _SettingsScreenState extends State<SettingsScreen> {
   late final SettingsViewModel viewModel;
 
-  bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
-    DuckRouter.of(context).pop();
-    return true;
-  }
+  // bool myInterceptor(bool stopDefaultButtonEvent, RouteInfo info) {
+  //   DuckRouter.of(context).pop();
+  //   return true;
+  // }
 
   @override
   void initState() {
     super.initState();
     viewModel = SettingsViewModel(userSettingsRepository: getIt());
-    BackButtonInterceptor.add(myInterceptor);
+    // BackButtonInterceptor.add(myInterceptor);
   }
 
   @override
   void dispose() {
     viewModel.onDispose();
     super.dispose();
-    BackButtonInterceptor.remove(myInterceptor);
+    // BackButtonInterceptor.remove(myInterceptor);
   }
 
   @override
   Widget build(BuildContext context) {
     final userLocale = watch(viewModel.userLocaleVN).value;
     final userThemeMode = watch(viewModel.userThemeModeVN).value;
+    final showDownloadNotifications = watch(
+      viewModel.showDownloadNotificationsVN,
+    ).value;
+    final downloadsConnectionPreference = watch(
+      viewModel.downloadsConnectionPreferenceVN,
+    ).value;
 
     return Scaffold(
       appBar: AppBar(
@@ -99,6 +104,58 @@ class _SettingsScreenState extends State<SettingsScreen> {
               ],
               onSubmitted: (themeMode) {
                 viewModel.saveUserThemeMode(themeMode);
+              },
+            ),
+            SettingsTile(
+              icon: Icon(Icons.notifications),
+              title:
+                  AppLocalizations.of(context)?.labelDownloadNotifications ??
+                  "",
+              selectionSheetTitle:
+                  AppLocalizations.of(
+                    context,
+                  )?.titleShowDownloadNotifications ??
+                  "",
+              selectedValue: showDownloadNotifications,
+              options: <SettingsTileOption<bool?>>[
+                SettingsTileOption(
+                  value: true,
+                  title: AppLocalizations.of(context)?.labelShow ?? "",
+                ),
+                SettingsTileOption(
+                  value: false,
+                  title: AppLocalizations.of(context)?.labelHide ?? "",
+                ),
+              ],
+              onSubmitted: (value) {
+                viewModel.saveShowDownloadNotifications(value);
+              },
+            ),
+            SettingsTile(
+              icon: Icon(Icons.download),
+              title:
+                  AppLocalizations.of(
+                    context,
+                  )?.labelDownloadsConnectionPreference ??
+                  "",
+              selectionSheetTitle:
+                  AppLocalizations.of(
+                    context,
+                  )?.labelDownloadsConnectionPreference ??
+                  "",
+              selectedValue: downloadsConnectionPreference,
+              options: <SettingsTileOption<DownloadsConnectionPreference?>>[
+                SettingsTileOption(
+                  value: DownloadsConnectionPreference.wifiOnly,
+                  title: AppLocalizations.of(context)?.labelWifiOnly ?? "",
+                ),
+                SettingsTileOption(
+                  value: DownloadsConnectionPreference.anyNetwork,
+                  title: AppLocalizations.of(context)?.labelAnyNetwork ?? "",
+                ),
+              ],
+              onSubmitted: (value) {
+                viewModel.saveDownloadConnectionPreference(value);
               },
             ),
           ],

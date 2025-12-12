@@ -135,4 +135,39 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get messageNoConnection => 'No Internet Connection';
+
+  @override
+  String get messageErrorDownloadingAudiobook => 'Error Downloading Audiobook';
+
+  @override
+  String get labelYes => 'Yes';
+
+  @override
+  String get labelNo => 'No';
+
+  @override
+  String get titleShowDownloadNotifications => 'Show Download Notifications?';
+
+  @override
+  String get labelDownloadNotifications => 'Download Notifications';
+
+  @override
+  String get labelShow => 'Show';
+
+  @override
+  String get labelHide => 'Hide';
+
+  @override
+  String get labelDownloadsConnectionPreference =>
+      'Downloads Connection Preference';
+
+  @override
+  String get labelWifiOnly => 'Wifi Only';
+
+  @override
+  String get labelAnyNetwork => 'Any Network';
+
+  @override
+  String get messageCanBeChangedInSettings =>
+      'This can be changed later in Settings screen.';
 }

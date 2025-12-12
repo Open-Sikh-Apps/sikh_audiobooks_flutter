@@ -31,6 +31,27 @@ class MainViewModel extends Disposable {
           return userThemeModeResult;
         }
 
+        final localDataVersionResult = await _userSettingsRepository
+            .fetchLocalDataVersion();
+
+        if (localDataVersionResult is Error) {
+          return localDataVersionResult;
+        }
+
+        final showDownloadNotificationsResult = await _userSettingsRepository
+            .fetchShowDownloadNotifications();
+
+        if (showDownloadNotificationsResult is Error) {
+          return showDownloadNotificationsResult;
+        }
+
+        final downloadConnectionPreferenceResult = await _userSettingsRepository
+            .fetchDownloadConnectionPreference();
+
+        if (downloadConnectionPreferenceResult is Error) {
+          return downloadConnectionPreferenceResult;
+        }
+
         return Result.ok(null);
       }, initialValue: null)..execute();
 

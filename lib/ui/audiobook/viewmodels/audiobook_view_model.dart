@@ -1,7 +1,7 @@
 import 'dart:async';
 
 import 'package:command_it/command_it.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
@@ -61,7 +61,6 @@ class AudiobookViewModel extends Disposable {
           },
         )
         .addTo(_compositeSubscription);
-    internetStatusVN = _audiobooksRepository.internetStatusVN;
   }
 
   final _log = Logger();
@@ -86,6 +85,9 @@ class AudiobookViewModel extends Disposable {
   late final Command<void, Result<void>?> refreshDataCommand =
       _audiobooksRepository.refreshDataCommand;
 
+  late final ValueNotifier<InternetStatus?> internetStatusVN =
+      _audiobooksRepository.internetStatusVN;
+
   late final Command<void, Result<void>?> _playCommand =
       Command.createAsyncNoParam(() async {
         //
@@ -102,33 +104,33 @@ class AudiobookViewModel extends Disposable {
 
   Command<void, Result<void>?> get pauseCommand => _pauseCommand;
 
-  late final Command<void, Result<void>?> _downloadCommand =
-      Command.createAsyncNoParam(() async {
-        //
-        return Result.ok(null);
+  late final Command<BuildContext, Result<void>?> _downloadCommand =
+      Command.createAsync((context) async {
+        //TODO setup listeners in widgets
+        return _audiobooksRepository.downloadAudiobook(context, _id);
       }, initialValue: null);
 
-  Command<void, Result<void>?> get downloadCommand => _downloadCommand;
+  Command<BuildContext, Result<void>?> get downloadCommand => _downloadCommand;
 
   late final Command<void, Result<void>?> _removeDownloadCommand =
       Command.createAsyncNoParam(() async {
-        //
-        return Result.ok(null);
+        //TODO setup listeners in widgets
+        return _audiobooksRepository.removeAudiobook(_id);
       }, initialValue: null);
 
   Command<void, Result<void>?> get removeDownloadCommand =>
       _removeDownloadCommand;
 
   late final Command<void, Result<void>?> _addToLibraryCommand =
-      Command.createAsyncNoParam(() async {
-        return await _audiobooksRepository.addAudiobookToLibrary(_id);
+      Command.createAsyncNoParam(() {
+        return _audiobooksRepository.addAudiobookToLibrary(_id);
       }, initialValue: null);
 
   Command<void, Result<void>?> get addToLibraryCommand => _addToLibraryCommand;
 
   late final Command<void, Result<void>?> _removeFromLibraryCommand =
-      Command.createAsyncNoParam(() async {
-        return await _audiobooksRepository.removeAudiobookFromLibrary(_id);
+      Command.createAsyncNoParam(() {
+        return _audiobooksRepository.removeAudiobookFromLibrary(_id);
       }, initialValue: null);
 
   Command<void, Result<void>?> get removeFromLibraryCommand =>
@@ -149,8 +151,6 @@ class AudiobookViewModel extends Disposable {
   void cancelDownloadAuthorImage(String authorId) {
     unawaited(_audiobooksRepository.cancelDownloadAuthorImage(authorId));
   }
-
-  late final ValueNotifier<InternetStatus?> internetStatusVN;
 
   @override
   FutureOr onDispose() async {

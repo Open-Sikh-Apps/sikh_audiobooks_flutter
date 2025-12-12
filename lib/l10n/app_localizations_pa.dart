@@ -136,4 +136,39 @@ class AppLocalizationsPa extends AppLocalizations {
 
   @override
   String get messageNoConnection => 'ਕੋਈ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਨਹੀਂ';
+
+  @override
+  String get messageErrorDownloadingAudiobook =>
+      'ਆਡੀਓ ਕਿਤਾਬ ਡਾਊਨਲੋਡ ਕਰਨ ਵਿੱਚ ਗੜਬੜ ਹੋਈ';
+
+  @override
+  String get labelYes => 'ਹਾਂ';
+
+  @override
+  String get labelNo => 'ਨਹੀਂ';
+
+  @override
+  String get titleShowDownloadNotifications => 'ਡਾਊਨਲੋਡ ਸੂਚਨਾਵਾਂ ਦਿਖਾਉਣੀਆਂ ਹਨ?';
+
+  @override
+  String get labelDownloadNotifications => 'ਡਾਊਨਲੋਡ ਸੂਚਨਾਵਾਂ';
+
+  @override
+  String get labelShow => 'ਦਿਖਾਓ';
+
+  @override
+  String get labelHide => 'ਲੁਕਾਓ';
+
+  @override
+  String get labelDownloadsConnectionPreference => 'ਡਾਊਨਲੋਡ ਕਨੈਕਸ਼ਨ ਤਰਜੀਹ';
+
+  @override
+  String get labelWifiOnly => 'ਸਿਰਫ਼ ਵਾਈ-ਫਾਈ';
+
+  @override
+  String get labelAnyNetwork => 'ਕੋਈ ਵੀ ਨੈੱਟਵਰਕ';
+
+  @override
+  String get messageCanBeChangedInSettings =>
+      'ਇਸਨੂੰ ਬਾਅਦ ਵਿੱਚ ਸੈਟਿੰਗਾਂ ਸਕ੍ਰੀਨ ਵਿੱਚ ਬਦਲਿਆ ਜਾ ਸਕਦਾ ਹੈ।';
 }

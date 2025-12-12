@@ -118,8 +118,6 @@ class _ChapterListTileState extends State<ChapterListTile> {
     final chapterUnavailable =
         ((widget.chapterUiState.chapter.localAudioPath == null) &&
         disconnected);
-    //TODO continue styling listtile as per previous design
-    //text size and leading padding
     return ListTile(
       horizontalTitleGap: Dimens.paddingHorizontal2XS,
       contentPadding: EdgeInsetsGeometry.symmetric(
@@ -168,69 +166,5 @@ class _ChapterListTileState extends State<ChapterListTile> {
         ],
       ),
     );
-
-    // return Material(
-    //   child: InkWell(
-    //     onTap: chapterOffline
-    //         ? null
-    //         : () {
-    //             viewModel.playCommand();
-    //             //TODO navigate to play screen
-    //           },
-    //     onLongPress: () => (showChapterBottomSheet(context, disconnected)),
-    //     child: Padding(
-    //       padding: EdgeInsetsGeometry.symmetric(
-    //         horizontal: Dimens.chapterListItemPaddingHorizontal,
-    //         vertical: Dimens.chapterListItemPaddingVertical,
-    //       ),
-    //       child: Row(
-    //         spacing: Dimens.paddingHorizontal2XS,
-    //         children: [
-    //           if (widget.chapterUiState.isPlaying)
-    //             AudioLinesIcon(
-    //               size: Dimens.chapterListItemPlayingIconSize,
-    //               infiniteLoop: true,
-    //               enableTouchInteraction: false,
-    //             )
-    //           else
-    //             SizedBox(width: Dimens.chapterListItemPlayingIconSize),
-    //           Expanded(
-    //             child: Column(
-    //               spacing: Dimens.paddingVertical2XS,
-    //               crossAxisAlignment: CrossAxisAlignment.start,
-    //               children: [
-    //                 Text(
-    //                   widget.chapterUiState.chapter.name[locale.languageCode] ??
-    //                       "",
-    //                   style: TextTheme.of(context).bodyMedium,
-    //                   maxLines: 2,
-    //                   overflow: TextOverflow.ellipsis,
-    //                 ),
-    //                 if (widget.chapterUiState.chapter.localAudioPath != null)
-    //                   Icon(Icons.download_done),
-    //               ],
-    //             ),
-    //           ),
-    //           Row(
-    //             spacing: Dimens.paddingHorizontal2XS,
-    //             mainAxisSize: MainAxisSize.min,
-    //             children: [
-    //               Text(
-    //                 widget.chapterUiState.chapter.duration.toDurationString(),
-    //                 style: TextTheme.of(context).bodyMedium,
-    //               ),
-    //               IconButton(
-    //                 iconSize: Dimens.chapterListItemIconSize,
-    //                 icon: Icon(Icons.more_vert),
-    //                 onPressed: () =>
-    //                     (showChapterBottomSheet(context, disconnected)),
-    //               ),
-    //             ],
-    //           ),
-    //         ],
-    //       ),
-    //     ),
-    //   ),
-    // );
   }
 }

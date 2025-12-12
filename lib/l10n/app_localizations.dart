@@ -343,6 +343,72 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No Internet Connection'**
   String get messageNoConnection;
+
+  /// Message for Error Downloading Audiobook
+  ///
+  /// In en, this message translates to:
+  /// **'Error Downloading Audiobook'**
+  String get messageErrorDownloadingAudiobook;
+
+  /// Label for Yes
+  ///
+  /// In en, this message translates to:
+  /// **'Yes'**
+  String get labelYes;
+
+  /// Label for No
+  ///
+  /// In en, this message translates to:
+  /// **'No'**
+  String get labelNo;
+
+  /// Title for Show Download Notifications?
+  ///
+  /// In en, this message translates to:
+  /// **'Show Download Notifications?'**
+  String get titleShowDownloadNotifications;
+
+  /// Label for Download Notifications
+  ///
+  /// In en, this message translates to:
+  /// **'Download Notifications'**
+  String get labelDownloadNotifications;
+
+  /// Label for Show
+  ///
+  /// In en, this message translates to:
+  /// **'Show'**
+  String get labelShow;
+
+  /// Label for Hide
+  ///
+  /// In en, this message translates to:
+  /// **'Hide'**
+  String get labelHide;
+
+  /// Label for Downloads Connection Preference
+  ///
+  /// In en, this message translates to:
+  /// **'Downloads Connection Preference'**
+  String get labelDownloadsConnectionPreference;
+
+  /// Label for Wifi Only
+  ///
+  /// In en, this message translates to:
+  /// **'Wifi Only'**
+  String get labelWifiOnly;
+
+  /// Label for Any Network
+  ///
+  /// In en, this message translates to:
+  /// **'Any Network'**
+  String get labelAnyNetwork;
+
+  /// Message for Can Be Changed In Settings
+  ///
+  /// In en, this message translates to:
+  /// **'This can be changed later in Settings screen.'**
+  String get messageCanBeChangedInSettings;
 }
 
 class _AppLocalizationsDelegate

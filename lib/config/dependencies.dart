@@ -52,7 +52,7 @@ Future<void> setupDependencies() async {
   );
   getIt.registerSingleton(
     AudiobooksRepositoryProd(
-          sharedPreferencesService: getIt(),
+          userSettingsRepository: getIt(),
           remoteDbService: getIt(),
           remoteStorageService: getIt(),
           dbService: getIt(),

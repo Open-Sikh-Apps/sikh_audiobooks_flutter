@@ -73,7 +73,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
     super.dispose();
   }
 
-  void showAudiobookBottomSheet(BuildContext context, bool disconnected) {
+  void _showAudiobookBottomSheet(bool disconnected) {
     final locale = Localizations.localeOf(context);
 
     showModalBottomSheet(
@@ -143,7 +143,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                   ),
                   onTap: () {
                     Navigator.pop(context);
-                    viewModel.downloadCommand();
+                    viewModel.downloadCommand(this.context);
                   },
                 ),
               if (widget.audiobookUiState.inLibrary)
@@ -287,7 +287,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
             to: AudiobookLocation(widget.audiobookUiState.audiobook.id),
           );
         },
-        onLongPress: () => (showAudiobookBottomSheet(context, disconnected)),
+        onLongPress: () => (_showAudiobookBottomSheet(disconnected)),
         child: Padding(
           padding: const EdgeInsets.symmetric(
             horizontal: Dimens.audiobookListItemPaddingHorizontal,
@@ -422,8 +422,7 @@ class _AudiobookListTileState extends State<AudiobookListTile> {
                   IconButton(
                     iconSize: Dimens.audiobookListItemIconSize,
                     icon: Icon(Icons.more_vert),
-                    onPressed: () =>
-                        (showAudiobookBottomSheet(context, disconnected)),
+                    onPressed: () => (_showAudiobookBottomSheet(disconnected)),
                   ),
                 ],
               ),

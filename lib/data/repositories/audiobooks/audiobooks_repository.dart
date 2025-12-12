@@ -3,15 +3,18 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:async/async.dart' hide Result;
+import 'package:background_downloader/background_downloader.dart';
 import 'package:collection/collection.dart';
 import 'package:command_it/command_it.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_fgbg/flutter_fgbg.dart';
 import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 import 'package:logger/logger.dart';
 import 'package:path/path.dart';
+import 'package:rxdart/rxdart.dart';
 import 'package:sikh_audiobooks_flutter/config/constants.dart';
+import 'package:sikh_audiobooks_flutter/data/repositories/user_settings/user_settings_repository.dart';
 import 'package:sikh_audiobooks_flutter/data/services/local_db_service.dart';
 import 'package:sikh_audiobooks_flutter/data/services/remote_db_service.dart';
 import 'package:sikh_audiobooks_flutter/data/services/remote_storage_service.dart';
@@ -20,17 +23,15 @@ import 'package:sikh_audiobooks_flutter/domain/models/audiobook/audiobook.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/audiobook_resume_location/audiobook_resume_location.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/author/author.dart';
 import 'package:sikh_audiobooks_flutter/domain/models/chapter/chapter.dart';
+import 'package:sikh_audiobooks_flutter/domain/models/task_with_status_and_progress/task_with_status_and_progress.dart';
+import 'package:sikh_audiobooks_flutter/l10n/app_localizations.dart';
 import 'package:sikh_audiobooks_flutter/utils/result.dart';
 
 abstract class AudiobooksRepository extends Disposable {
-  /// Fetches Author List from server or local (if available)
-  /// First checks if the "data_version" from realtime database
-  /// and compares with locally saved in shared prefs
-  /// - updates local text data, if obsolete
-  /// - downloads any author images, if missing or obsolete
-  // Future<List<Author>> fetchAuthorList();
   Command<void, Result<void>?> get refreshDataCommand;
   ValueNotifier<InternetStatus?> get internetStatusVN;
+  ValueNotifier<Map<String, TaskWithStatusAndProgress>>
+  get downloadTasksUpdates;
 
   Future<void> startDownloadAuthorImage(String authorId);
   Future<void> cancelDownloadAuthorImage(String authorId);
@@ -66,34 +67,54 @@ abstract class AudiobooksRepository extends Disposable {
   Stream<List<AudiobookResumeLocation>>
   getInLibraryAudiobookResumeLocationsStream();
   Stream<List<Chapter>> getInLibraryChaptersStream();
+
+  Future<Result<void>> downloadAudiobook(
+    BuildContext context,
+    String audiobookId,
+  );
+  Future<Result<void>> removeAudiobook(audiobookId);
 }
 
-// handle offline functionality
-// expose internet connection status
-// on offline
-//    - cancel refreshDataCommand
-//    - cancel any image downloads
-//    - TODO(pause any network audio which is playing and disable from queue)
-//    - TODO(disable any network audios in queue)
-// on online
-//    - start refreshDataCommand if failed previously
-//    - refresh frontend widgets to load images again, if needed
-//    - TODO(enable any disabled network audios in queue)
-// general operations
-//    - check online/offline
-//        - before starting any image download
-//        - before syncing database online
+/// handle offline functionality
+/// expose internet connection status
+/// on offline
+///    - cancel refreshDataCommand
+///    - cancel any image downloads
+///    - TODO(stop any network audio which is playing and disable from queue)
+///    - TODO(disable any network audios in queue)
+///    - pauseall
+/// on online
+///    - start refreshDataCommand if failed previously
+///    - refresh frontend widgets to load images again, if needed
+///    - TODO(enable any disabled network audios in queue)
+/// general operations
+///    - check online/offline
+///        - before starting any image download
+///        - before syncing database online
 // pause internet subscription on app background
-// TODO(but not when playing any network audio)
+// TODO(but not when any network audio in playing queue)
+///
+/// Fetches Author List from server or local (if available)
+/// First checks if the "data_version" from realtime database
+/// and compares with locally saved in shared prefs
+/// - updates local text data, if obsolete
+/// - downloads any author images, if missing or obsolete
+///
+/// TODO when starting download, check if notification permssions are granted,
+///   if yes, continue downloading showing notifications
+///   if not, check if user previously denied in shared prefs
+///     if yes, continue downloading without notifications
+///     if not, show rationale dialog, request notif permission
+///     and continue downloading accordingly
 
 class AudiobooksRepositoryProd extends AudiobooksRepository {
   AudiobooksRepositoryProd({
-    required SharedPreferencesService sharedPreferencesService,
+    required UserSettingsRepository userSettingsRepository,
     required RemoteDbService remoteDbService,
     required RemoteStorageService remoteStorageService,
     required LocalDbService dbService,
     required Directory appDocsDir,
-  }) : _sharedPreferencesService = sharedPreferencesService,
+  }) : _userSettingsRepository = userSettingsRepository,
        _remoteDbService = remoteDbService,
        _remoteStorageService = remoteStorageService,
        _localDbService = dbService,
@@ -133,18 +154,23 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
 
     _internetStatusSubscription = subscribeInternetChanges();
 
-    _fgbgSubscription = FGBGEvents.instance.stream.listen((event) async {
-      switch (event) {
-        case FGBGType.background:
-          await _internetStatusSubscription?.cancel();
-        case FGBGType.foreground:
-          _internetStatusSubscription = subscribeInternetChanges();
-      }
-    });
+    FGBGEvents.instance.stream
+        .listen((event) async {
+          switch (event) {
+            case FGBGType.background:
+              await _internetStatusSubscription?.cancel();
+              _internetStatusSubscription = null;
+            case FGBGType.foreground:
+              _internetStatusSubscription ??= subscribeInternetChanges();
+          }
+        })
+        .addTo(_compositeSubscription);
+
+    unawaited(initDownloader());
   }
 
   final _log = Logger();
-  final SharedPreferencesService _sharedPreferencesService;
+  final UserSettingsRepository _userSettingsRepository;
   final RemoteDbService _remoteDbService;
   final RemoteStorageService _remoteStorageService;
   final LocalDbService _localDbService;
@@ -163,9 +189,16 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   @override
   ValueNotifier<InternetStatus?> get internetStatusVN => _internetStatusVN;
 
+  final ValueNotifier<Map<String, TaskWithStatusAndProgress>>
+  _downloadTasksUpdates = ValueNotifier({});
+
+  @override
+  ValueNotifier<Map<String, TaskWithStatusAndProgress>>
+  get downloadTasksUpdates => _downloadTasksUpdates;
+
   StreamSubscription<InternetStatus>? _internetStatusSubscription;
 
-  late final StreamSubscription<FGBGType> _fgbgSubscription;
+  final _compositeSubscription = CompositeSubscription();
 
   late final ListenableSubscription _internetStatusVNSubscription;
 
@@ -374,7 +407,7 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
       return Result.error("No Internet");
     }
 
-    final dataVersionResult = await _sharedPreferencesService
+    final dataVersionResult = await _userSettingsRepository
         .fetchLocalDataVersion();
     final int? localDataVersion;
 
@@ -624,7 +657,9 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
         //(also, later update audiobook's current timestamp, duration left, and update bookmarks, if any, as required)
 
         // saveLocalDataVersion
-        _sharedPreferencesService.saveLocalDataVersion(serverDataVersion);
+        _userSettingsRepository.saveLocalDataVersion(
+          localDataVersion: serverDataVersion,
+        );
       } catch (e) {
         return Result.error(e);
       }
@@ -653,7 +688,7 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
     await cancelImageDownloads();
     _refreshDataCommand.dispose();
     _internetStatusVNSubscription.cancel();
-    await _fgbgSubscription.cancel();
+    await _compositeSubscription.dispose();
     await _internetStatusSubscription?.cancel();
     _internetStatusVN.dispose();
   }
@@ -748,5 +783,208 @@ class AudiobooksRepositoryProd extends AudiobooksRepository {
   @override
   Stream<List<Chapter>> getInLibraryChaptersStream() {
     return _localDbService.getInLibraryChaptersStream();
+  }
+
+  Future<void> initDownloader() async {
+    FileDownloader().updates
+        .listen((update) {
+          final currentUpdates = _downloadTasksUpdates.value;
+
+          switch (update) {
+            case TaskStatusUpdate():
+              if (update.status.isFinalState) {
+                //remove task from _downloadTasksUpdates
+                currentUpdates.remove(update.task.taskId);
+              } else {
+                //just update the status in _downloadTasksUpdates
+                currentUpdates.update(
+                  update.task.taskId,
+                  (oldUpdate) => (oldUpdate.copyWith(status: update.status)),
+                  ifAbsent: () => (TaskWithStatusAndProgress(
+                    task: update.task,
+                    status: update.status,
+                  )),
+                );
+              }
+            case TaskProgressUpdate():
+              final updateProgress = update.progress;
+              currentUpdates.update(
+                update.task.taskId,
+                (oldUpdate) => (oldUpdate.copyWith(progress: updateProgress)),
+                ifAbsent: () => (TaskWithStatusAndProgress(
+                  task: update.task,
+                  progress: updateProgress,
+                )),
+              );
+          }
+
+          _downloadTasksUpdates.value = currentUpdates;
+        })
+        .addTo(_compositeSubscription);
+    await FileDownloader().start();
+  }
+
+  @override
+  Future<Result<void>> downloadAudiobook(
+    BuildContext context,
+    String audiobookId,
+  ) async {
+    //check if audiobook not aleady downloading
+    // - if yes, skip this download
+    final records = await FileDownloader().database.allRecords(
+      group: audiobookId,
+    );
+    if (records.any((record) => (record.status.isNotFinalState))) {
+      return Result.error("already downloading for this audiobook");
+    }
+
+    if (context.mounted) {
+      final preDownloadChecksResult = await _preDownloadChecks(context);
+      if (preDownloadChecksResult is Error) {
+        return preDownloadChecksResult;
+      }
+    }
+    //get audiobook chapters
+
+    //remove chapters which are already downloading individually (without group tag)
+
+    //enqueue download remaining chapters with group tag
+
+    return Result.ok(null);
+  }
+
+  @override
+  Future<Result<void>> removeAudiobook(audiobookId) async {
+    // TODO: implement removeAudiobook
+    return Result.ok(null);
+  }
+
+  Future<Result<void>> _preDownloadChecks(BuildContext context) async {
+    final bool? showDownloadNotifications =
+        _userSettingsRepository.showDownloadNotificationsVN.value;
+
+    DownloadsConnectionPreference? downloadsConnectionPreference =
+        _userSettingsRepository.downloadsConnectionPreferenceVN.value;
+
+    if (showDownloadNotifications == null ||
+        showDownloadNotifications == true) {
+      // check permission status
+      // if denied, show dialog explaining permission, and request for permission
+      final permissionType = PermissionType.notifications;
+      PermissionStatus status = await FileDownloader().permissions.status(
+        permissionType,
+      );
+      if (status != PermissionStatus.granted) {
+        if (context.mounted) {
+          final bool requestPermission;
+          if (showDownloadNotifications == null) {
+            requestPermission =
+                await _showDownloadNotificationsRationaleDialog(context) ??
+                false;
+          } else {
+            requestPermission = true;
+          }
+
+          final saveShowDownloadNotificationsResult =
+              await _userSettingsRepository.saveShowDownloadNotifications(
+                showDownloadNotifications: requestPermission,
+              );
+
+          switch (saveShowDownloadNotificationsResult) {
+            case Ok<void>():
+              break;
+            case Error<void>():
+              return Result.error("Error saveShowDownloadNotifications");
+          }
+        } else {
+          return Result.error("!context.mounted for showDownloadNotifications");
+        }
+      }
+    }
+
+    if (context.mounted) {
+      if (downloadsConnectionPreference == null) {
+        downloadsConnectionPreference =
+            await _showDownloadsConnectionPreferenceDialog(context);
+        if (downloadsConnectionPreference != null) {
+          final downloadConnectionPreferenceResult =
+              await _userSettingsRepository.saveDownloadsConnectionPreference(
+                downloadsConnectionPreference: downloadsConnectionPreference,
+              );
+          switch (downloadConnectionPreferenceResult) {
+            case Ok<void>():
+              break;
+            case Error<void>():
+              return Result.error("Error saveDownloadConnectionPreference");
+          }
+        }
+      }
+    } else {
+      return Result.error("!context.mounted for downloadConnectionPreference");
+    }
+
+    return Result.ok(null);
+  }
+
+  Future<bool?> _showDownloadNotificationsRationaleDialog(
+    BuildContext context,
+  ) {
+    return showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(
+          AppLocalizations.of(context)?.titleShowDownloadNotifications ?? "",
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            AppLocalizations.of(context)?.messageCanBeChangedInSettings ?? "",
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(AppLocalizations.of(context)?.labelNo ?? ""),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(AppLocalizations.of(context)?.labelYes ?? ""),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<DownloadsConnectionPreference?>
+  _showDownloadsConnectionPreferenceDialog(BuildContext context) {
+    return showDialog<DownloadsConnectionPreference?>(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        title: Text(
+          AppLocalizations.of(context)?.labelDownloadsConnectionPreference ??
+              "",
+        ),
+        content: SingleChildScrollView(
+          child: Text(
+            AppLocalizations.of(context)?.messageCanBeChangedInSettings ?? "",
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () =>
+                Navigator.pop(context, DownloadsConnectionPreference.wifiOnly),
+            child: Text(AppLocalizations.of(context)?.labelWifiOnly ?? ""),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(
+              context,
+              DownloadsConnectionPreference.anyNetwork,
+            ),
+            child: Text(AppLocalizations.of(context)?.labelAnyNetwork ?? ""),
+          ),
+        ],
+      ),
+    );
   }
 }

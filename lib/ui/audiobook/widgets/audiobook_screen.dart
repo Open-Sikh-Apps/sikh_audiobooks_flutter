@@ -279,7 +279,9 @@ class _AudiobookScreenState extends State<AudiobookScreen> {
                                         onPressed: disconnected
                                             ? null
                                             : () {
-                                                viewModel.downloadCommand();
+                                                viewModel.downloadCommand(
+                                                  context,
+                                                );
                                               },
                                       ),
                                 audiobookUiState.inLibrary

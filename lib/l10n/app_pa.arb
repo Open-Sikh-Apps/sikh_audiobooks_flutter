@@ -40,5 +40,16 @@
   "messageRemovedFromLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਤੋਂ ਹਟਾਇਆ ਗਿਆ",
   "messageErrorRemovingFromLibrary": "ਲਾਇਬ੍ਰੇਰੀ ਵਿੱਚੋਂ ਹਟਾਉਣ ਵੇਲੇ ਗੜਬੜ ਹੋਈ",
   "messageLibraryEmpty": "ਲਾਇਬ੍ਰੇਰੀ ਖਾਲੀ ਹੈ।",
-  "messageNoConnection": "ਕੋਈ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਨਹੀਂ"
+  "messageNoConnection": "ਕੋਈ ਇੰਟਰਨੈੱਟ ਕਨੈਕਸ਼ਨ ਨਹੀਂ",
+  "messageErrorDownloadingAudiobook": "ਆਡੀਓ ਕਿਤਾਬ ਡਾਊਨਲੋਡ ਕਰਨ ਵਿੱਚ ਗੜਬੜ ਹੋਈ",
+  "labelYes": "ਹਾਂ",
+  "labelNo": "ਨਹੀਂ",
+  "titleShowDownloadNotifications": "ਡਾਊਨਲੋਡ ਸੂਚਨਾਵਾਂ ਦਿਖਾਉਣੀਆਂ ਹਨ?",
+  "labelDownloadNotifications": "ਡਾਊਨਲੋਡ ਸੂਚਨਾਵਾਂ",
+  "labelShow": "ਦਿਖਾਓ",
+  "labelHide": "ਲੁਕਾਓ",
+  "labelWifiOnly": "ਸਿਰਫ਼ ਵਾਈ-ਫਾਈ",
+  "labelAnyNetwork": "ਕੋਈ ਵੀ ਨੈੱਟਵਰਕ",
+  "labelDownloadsConnectionPreference": "ਡਾਊਨਲੋਡ ਕਨੈਕਸ਼ਨ ਤਰਜੀਹ",
+  "messageCanBeChangedInSettings": "ਇਸਨੂੰ ਬਾਅਦ ਵਿੱਚ ਸੈਟਿੰਗਾਂ ਸਕ੍ਰੀਨ ਵਿੱਚ ਬਦਲਿਆ ਜਾ ਸਕਦਾ ਹੈ।"
 }

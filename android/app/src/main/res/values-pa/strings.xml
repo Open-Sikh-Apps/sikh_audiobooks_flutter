@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="bg_downloader_cancel">ਰੱਦ ਕਰੋ</string>
+    <string name="bg_downloader_pause">ਰੋਕੋ</string>
+    <string name="bg_downloader_resume">ਮੁੜ ਸ਼ੁਰੂ ਕਰੋ</string>
+    <string name="bg_downloader_notification_channel_name">ਡਾਊਨਲੋਡ ਸੂਚਨਾਵਾਂ</string>
+    <string name="bg_downloader_notification_channel_description">ਡਾਊਨਲੋਡ ਪ੍ਰਗਤੀ ਅਤੇ ਕਾਰਵਾਈਆਂ ਦਿਖਾਉਂਦਾ ਹੈ</string>
+</resources>

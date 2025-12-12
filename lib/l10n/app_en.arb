@@ -183,5 +183,49 @@
   "messageNoConnection": "No Internet Connection",
   "@messageNoConnection": {
     "description": "Message for No Internet Connection"
+  },
+  "messageErrorDownloadingAudiobook": "Error Downloading Audiobook",
+  "@messageErrorDownloadingAudiobook": {
+    "description": "Message for Error Downloading Audiobook"
+  },
+  "labelYes": "Yes",
+  "@labelYes": {
+    "description": "Label for Yes"
+  },
+  "labelNo": "No",
+  "@labelNo": {
+    "description": "Label for No"
+  },
+  "titleShowDownloadNotifications": "Show Download Notifications?",
+  "@titleShowDownloadNotifications": {
+    "description": "Title for Show Download Notifications?"
+  },
+  "labelDownloadNotifications": "Download Notifications",
+  "@labelDownloadNotifications": {
+    "description": "Label for Download Notifications"
+  },
+  "labelShow": "Show",
+  "@labelShow": {
+    "description": "Label for Show"
+  },
+  "labelHide": "Hide",
+  "@labelHide": {
+    "description": "Label for Hide"
+  },
+  "labelDownloadsConnectionPreference": "Downloads Connection Preference",
+  "@labelDownloadsConnectionPreference": {
+    "description": "Label for Downloads Connection Preference"
+  },
+  "labelWifiOnly": "Wifi Only",
+  "@labelWifiOnly": {
+    "description": "Label for Wifi Only"
+  },
+  "labelAnyNetwork": "Any Network",
+  "@labelAnyNetwork": {
+    "description": "Label for Any Network"
+  },
+  "messageCanBeChangedInSettings": "This can be changed later in Settings screen.",
+  "@messageCanBeChangedInSettings": {
+    "description": "Message for Can Be Changed In Settings"
   }
 }

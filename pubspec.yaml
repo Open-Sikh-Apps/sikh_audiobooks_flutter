@@ -32,7 +32,7 @@ dependencies:
   async: ^2.13.0
   freezed_annotation: ^3.1.0
   json_annotation: ^4.9.0
-  duck_router: ^7.2.0
+  duck_router: ^7.2.2
   uuid: ^4.5.1
   rxdart: ^0.28.0
   url_launcher: ^6.3.2
@@ -42,6 +42,7 @@ dependencies:
   internet_connection_checker_plus: ^2.9.0
   flutter_fgbg: ^0.7.1
   connectivity_plus: ^7.0.0
+  background_downloader: ^9.3.0
 
 dev_dependencies:
   flutter_test:

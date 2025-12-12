@@ -45,7 +45,7 @@ class ChapterViewModel extends Disposable {
   Command<void, Result<void>?> get playCommand => _playCommand;
 
   @override
-  FutureOr onDispose() {
+  FutureOr onDispose() async {
     _downloadCommand.dispose();
     _removeDownloadCommand.dispose();
     _playCommand.dispose();
